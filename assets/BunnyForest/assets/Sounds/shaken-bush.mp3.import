@@ -1,0 +1,15 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+path="res://.import/shaken-bush.mp3-de8f9aab0ee7cb19c6816fa9b16d5cf5.mp3str"
+
+[deps]
+
+source_file="res://Sounds/shaken-bush.mp3"
+dest_files=[ "res://.import/shaken-bush.mp3-de8f9aab0ee7cb19c6816fa9b16d5cf5.mp3str" ]
+
+[params]
+
+loop=false
+loop_offset=0

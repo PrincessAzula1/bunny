@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:http/http.dart' as http;
+import 'bunny_forest_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -162,6 +163,25 @@ class _StartVideoScreenState extends State<StartVideoScreen> {
     );
   }
 
+  Future<void> _openBunnyForest() async {
+    try {
+      _videoController.pause();
+      await _musicPlayer.stop();
+    } catch (_) {}
+
+    setState(() => _flash = true);
+
+    await Future.delayed(const Duration(milliseconds: 300));
+
+    if (!mounted) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => BunnyForestScreen(musicPlayer: _musicPlayer),
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _videoController.dispose();
@@ -248,15 +268,25 @@ class _StartVideoScreenState extends State<StartVideoScreen> {
             ),
           ),
 
-          // ▶️ START BUTTON
+          // ▶️ START + BUNNY GAME BUTTONS
           Positioned(
-            bottom: 80,
+            bottom: 120,
             left: 0,
             right: 0,
             child: Center(
-              child: ElevatedButton(
-                onPressed: _goNext,
-                child: const Text("Start"),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ElevatedButton(
+                    onPressed: _goNext,
+                    child: const Text("Start"),
+                  ),
+                  const SizedBox(height: 12),
+                  ElevatedButton(
+                    onPressed: _openBunnyForest,
+                    child: const Text("Bunny game"),
+                  ),
+                ],
               ),
             ),
           ),

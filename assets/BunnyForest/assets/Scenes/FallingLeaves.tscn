@@ -1,0 +1,72 @@
+[gd_scene load_steps=11 format=2]
+
+[ext_resource path="res://Sprites/leaf1.png" type="Texture" id=1]
+[ext_resource path="res://Scenes/FallingLeaves.gd" type="Script" id=2]
+
+[sub_resource type="CanvasItemMaterial" id=136]
+particles_animation = true
+particles_anim_h_frames = 4
+particles_anim_v_frames = 1
+particles_anim_loop = false
+
+[sub_resource type="Curve" id=129]
+min_value = -360.0
+max_value = 360.0
+_data = [ Vector2( 0, -98.1818 ), 0.0, 0.0, 0, 0, Vector2( 1, 97.1053 ), -234.818, 0.0, 0, 0 ]
+
+[sub_resource type="CurveTexture" id=130]
+curve = SubResource( 129 )
+
+[sub_resource type="Curve" id=134]
+_data = [ Vector2( 0, 0.131579 ), 0.0, 24.78, 0, 0, Vector2( 0.0825688, 1 ), 0.0363748, 0.0363748, 0, 0, Vector2( 0.697248, 0.66557 ), -1.31047, -1.31047, 0, 0, Vector2( 1, 0.148026 ), -2.74371, 0.0, 0, 0 ]
+
+[sub_resource type="CurveTexture" id=135]
+curve = SubResource( 134 )
+
+[sub_resource type="Curve" id=132]
+min_value = -200.0
+max_value = 200.0
+_data = [ Vector2( 0.247881, 5.45456 ), 0.0, 376.763, 0, 0, Vector2( 1, -1.81818 ), 441.351, 0.0, 0, 0 ]
+
+[sub_resource type="CurveTexture" id=133]
+curve = SubResource( 132 )
+
+[sub_resource type="ParticlesMaterial" id=128]
+emission_shape = 1
+emission_sphere_radius = 10.0
+flag_disable_z = true
+direction = Vector3( 0, 1, 0 )
+gravity = Vector3( 0, 20, 0 )
+initial_velocity = 15.0
+initial_velocity_random = 0.5
+angular_velocity = 10.0
+angular_velocity_random = 1.0
+angular_velocity_curve = SubResource( 130 )
+orbit_velocity = 0.05
+orbit_velocity_random = 1.0
+tangential_accel = 5.0
+tangential_accel_random = 1.0
+tangential_accel_curve = SubResource( 133 )
+angle = 90.0
+angle_random = 1.0
+scale_curve = SubResource( 135 )
+anim_offset = 1.0
+anim_offset_random = 1.0
+
+[node name="FallingLeaves" type="Particles2D"]
+material = SubResource( 136 )
+position = Vector2( 141, 43 )
+emitting = false
+amount = 1
+lifetime = 4.0
+one_shot = true
+randomness = 0.2
+local_coords = false
+process_material = SubResource( 128 )
+texture = ExtResource( 1 )
+script = ExtResource( 2 )
+
+[node name="Timer" type="Timer" parent="."]
+autostart = true
+
+[connection signal="timeout" from="Timer" to="." method="_on_Timer_timeout"]

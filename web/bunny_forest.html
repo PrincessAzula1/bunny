@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐰 Bunny Forest</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            width: 100%;
+            height: 100%;
+            font-family: Arial, sans-serif;
+            background: #1a1a1a;
+        }
+        
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .game-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #2d5016 0%, #4a7c2c 100%);
+            color: white;
+        }
+        
+        .game-loading {
+            text-align: center;
+        }
+        
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid white;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .game-title {
+            font-size: 48px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        
+        .game-status {
+            font-size: 20px;
+            margin-bottom: 40px;
+            opacity: 0.9;
+        }
+        
+        .game-info {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px 40px;
+            border-radius: 10px;
+            max-width: 600px;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        canvas#bunnyCanvas {
+            display: block;
+            max-width: 100%;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+        }
+        
+        .back-button {
+            margin-top: 30px;
+            padding: 12px 30px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid white;
+            color: white;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-loading">
+            <div class="game-title">🐰 Bunny Forest</div>
+            <div class="spinner"></div>
+            <div class="game-status" id="status">Initializing game environment...</div>
+            <div class="game-info" id="info" style="display:none;">
+                <p>The Bunny Forest game is being loaded in your browser.</p>
+                <p>Click the canvas below to interact with the game.</p>
+            </div>
+            <canvas id="bunnyCanvas" width="1280" height="720" style="display:none;"></canvas>
+            <button class="back-button" onclick="goBack()">← Back to Menu</button>
+        </div>
+    </div>
+    
+    <script>
+        const canvas = document.getElementById('bunnyCanvas');
+        const ctx = canvas.getContext('2d');
+        const statusEl = document.getElementById('status');
+        const infoEl = document.getElementById('info');
+        
+        let gameState = {
+            bunnies: [],
+            trees: [],
+            gameTime: 0,
+            score: 0
+        };
+        
+        // Initialize the game environment
+        function initGame() {
+            // Draw the forest background
+            ctx.fillStyle = '#2d5016';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Add some game elements
+            generateForest();
+            
+            // Update status
+            statusEl.textContent = '🎮 Game Ready - Click to play';
+            infoEl.style.display = 'block';
+            canvas.style.display = 'block';
+            
+            // Start game loop
+            gameLoop();
+        }
+        
+        function generateForest() {
+            // Generate trees
+            for (let i = 0; i < 5; i++) {
+                gameState.trees.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * (canvas.height * 0.7),
+                    width: 40 + Math.random() * 40,
+                    height: 60 + Math.random() * 80
+                });
+            }
+            
+            // Generate bunnies
+            for (let i = 0; i < 3; i++) {
+                gameState.bunnies.push({
+                    x: Math.random() * canvas.width,
+                    y: canvas.height * 0.7 + Math.random() * 100,
+                    vx: (Math.random() - 0.5) * 2,
+                    vy: (Math.random() - 0.5) * 1
+                });
+            }
+        }
+        
+        function gameLoop() {
+            // Clear canvas
+            ctx.fillStyle = '#2d5016';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw sky
+            ctx.fillStyle = '#87ceeb';
+            ctx.fillRect(0, 0, canvas.width, canvas.height * 0.4);
+            
+            // Draw grass
+            ctx.fillStyle = '#3d7a1f';
+            ctx.fillRect(0, canvas.height * 0.4, canvas.width, canvas.height * 0.6);
+            
+            // Draw trees
+            ctx.fillStyle = '#654321';
+            gameState.trees.forEach(tree => {
+                ctx.fillRect(tree.x, tree.y, tree.width / 2, tree.height);
+            });
+            
+            ctx.fillStyle = '#228B22';
+            gameState.trees.forEach(tree => {
+                ctx.beginPath();
+                ctx.arc(tree.x + tree.width / 4, tree.y - 10, tree.width / 2, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            
+            // Draw and update bunnies
+            ctx.fillStyle = '#ff9999';
+            gameState.bunnies.forEach(bunny => {
+                // Bunny body
+                ctx.beginPath();
+                ctx.ellipse(bunny.x, bunny.y, 20, 15, 0, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Bunny head
+                ctx.beginPath();
+                ctx.arc(bunny.x, bunny.y - 20, 12, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Bunny ears
+                ctx.fillStyle = '#ff9999';
+                ctx.fillRect(bunny.x - 4, bunny.y - 40, 4, 20);
+                ctx.fillRect(bunny.x, bunny.y - 40, 4, 20);
+                
+                // Eyes
+                ctx.fillStyle = '#000000';
+                ctx.beginPath();
+                ctx.arc(bunny.x - 4, bunny.y - 22, 2, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(bunny.x + 4, bunny.y - 22, 2, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Update position
+                bunny.x += bunny.vx;
+                bunny.y += bunny.vy;
+                
+                // Bounce off edges
+                if (bunny.x < 0 || bunny.x > canvas.width) bunny.vx *= -1;
+                if (bunny.y < canvas.height * 0.4 || bunny.y > canvas.height) bunny.vy *= -1;
+            });
+            
+            // Draw score
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 24px Arial';
+            ctx.fillText(`🌟 Score: ${gameState.score}`, 20, 40);
+            
+            gameState.gameTime++;
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // Click to add carrots
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            // Check if bunny was clicked
+            gameState.bunnies.forEach(bunny => {
+                const dx = bunny.x - x;
+                const dy = bunny.y - y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < 25) {
+                    gameState.score += 10;
+                    bunny.x = Math.random() * canvas.width;
+                    bunny.y = canvas.height * 0.7 + Math.random() * 100;
+                }
+            });
+        });
+        
+        function goBack() {
+            // Use Flutter's navigation
+            if (window.parent !== window) {
+                window.parent.postMessage({ action: 'back' }, '*');
+            } else {
+                history.back();
+            }
+        }
+        
+        // Start the game
+        setTimeout(initGame, 800);
+    </script>
+</body>
+</html>

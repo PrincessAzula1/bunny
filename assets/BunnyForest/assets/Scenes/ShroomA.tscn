@@ -1,0 +1,62 @@
+[gd_scene load_steps=7 format=2]
+
+[ext_resource path="res://Sprites/shroom1.png" type="Texture" id=1]
+[ext_resource path="res://Scenes/Shroom.gd" type="Script" id=2]
+[ext_resource path="res://Sounds/squelch.wav" type="AudioStream" id=3]
+
+[sub_resource type="CircleShape2D" id=1]
+radius = 8.0
+
+[sub_resource type="CircleShape2D" id=2]
+radius = 7.0
+
+[sub_resource type="ParticlesMaterial" id=3]
+emission_shape = 1
+emission_sphere_radius = 5.0
+flag_disable_z = true
+gravity = Vector3( 0, -30, 0 )
+orbit_velocity = 0.0
+orbit_velocity_random = 0.0
+color = Color( 1, 0.956863, 0.501961, 1 )
+
+[node name="ShroomA" type="Area2D"]
+script = ExtResource( 2 )
+
+[node name="Sprite" type="Sprite" parent="."]
+texture = ExtResource( 1 )
+hframes = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2( 0.52556, -2.04969 )
+shape = SubResource( 1 )
+
+[node name="StaticBody2D" type="StaticBody2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2( 0.525558, -2.04968 )
+rotation = 1.5708
+shape = SubResource( 2 )
+
+[node name="Particles2D" type="Particles2D" parent="."]
+position = Vector2( 0, -3 )
+emitting = false
+amount = 5
+visibility_rect = Rect2( -20, -20, 40, 40 )
+process_material = SubResource( 3 )
+
+[node name="EmitStopTimer" type="Timer" parent="."]
+wait_time = 1.5
+
+[node name="TouchStopTimer" type="Timer" parent="."]
+wait_time = 0.2
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
+stream = ExtResource( 3 )
+volume_db = -12.0
+pitch_scale = 0.8
+bus = "Effects"
+
+[connection signal="body_entered" from="." to="." method="_on_ShroomA_body_entered"]
+[connection signal="body_exited" from="." to="." method="_on_ShroomA_body_exited"]
+[connection signal="timeout" from="EmitStopTimer" to="." method="_on_EmitStopTimer_timeout"]
+[connection signal="timeout" from="TouchStopTimer" to="." method="_on_TouchStopTimer_timeout"]

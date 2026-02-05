@@ -1,0 +1,94 @@
+[gd_scene load_steps=9 format=2]
+
+[ext_resource path="res://Sprites/scroll.png" type="Texture" id=1]
+[ext_resource path="res://Sprites/scroll-paper.png" type="Texture" id=2]
+[ext_resource path="res://Scenes/Scroll.gd" type="Script" id=3]
+[ext_resource path="res://Etc/pixuf.ttf" type="DynamicFontData" id=4]
+[ext_resource path="res://Sounds/cuttingpaper03.wav" type="AudioStream" id=5]
+
+[sub_resource type="AtlasTexture" id=4]
+atlas = ExtResource( 1 )
+region = Rect2( 0, 0, 22, 87 )
+
+[sub_resource type="DynamicFont" id=3]
+size = 8
+outline_size = 1
+outline_color = Color( 1, 1, 1, 0.117647 )
+extra_spacing_top = 1
+extra_spacing_bottom = 2
+font_data = ExtResource( 4 )
+
+[sub_resource type="AtlasTexture" id=5]
+atlas = ExtResource( 1 )
+region = Rect2( 114, 0, 22, 87 )
+
+[node name="Scroll" type="Control"]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+script = ExtResource( 3 )
+
+[node name="Tween" type="Tween" parent="."]
+
+[node name="HSplitContainer" type="GridContainer" parent="."]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -14.0
+margin_top = -32.0
+margin_right = 14.0
+margin_bottom = 32.0
+grow_horizontal = 2
+grow_vertical = 2
+custom_constants/hseparation = 0
+columns = 3
+
+[node name="Left" type="TextureRect" parent="HSplitContainer"]
+margin_right = 22.0
+margin_bottom = 87.0
+texture = SubResource( 4 )
+
+[node name="Paper" type="TextureRect" parent="HSplitContainer"]
+margin_left = 22.0
+margin_right = 22.0
+margin_bottom = 87.0
+size_flags_horizontal = 3
+texture = ExtResource( 2 )
+expand = true
+stretch_mode = 2
+
+[node name="Label" type="Label" parent="HSplitContainer/Paper"]
+modulate = Color( 1, 1, 1, 0 )
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -35.0
+margin_top = -8.0
+margin_right = 35.0
+margin_bottom = 8.0
+grow_horizontal = 2
+grow_vertical = 2
+custom_colors/font_color = Color( 0, 0, 0, 0.411765 )
+custom_fonts/font = SubResource( 3 )
+text = "something"
+
+[node name="Right" type="TextureRect" parent="HSplitContainer"]
+margin_left = 22.0
+margin_right = 44.0
+margin_bottom = 87.0
+texture = SubResource( 5 )
+
+[node name="CloseTimer" type="Timer" parent="."]
+wait_time = 2.25
+one_shot = true
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
+stream = ExtResource( 5 )
+bus = "Effects"
+
+[connection signal="tween_completed" from="Tween" to="." method="_on_Tween_tween_completed"]
+[connection signal="gui_input" from="HSplitContainer" to="." method="_on_HSplitContainer_gui_input"]
+[connection signal="timeout" from="CloseTimer" to="." method="_on_CloseTimer_timeout"]

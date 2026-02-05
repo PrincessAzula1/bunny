@@ -1,0 +1,15 @@
+[remap]
+
+importer="ogg_vorbis"
+type="AudioStreamOGGVorbis"
+path="res://.import/274679-badkitty67044-default-grass-footstep-3_ZHifNMjF.ogg-07d5cf22e8de9078b36639a8a11548be.oggstr"
+
+[deps]
+
+source_file="res://Sounds/274679-badkitty67044-default-grass-footstep-3_ZHifNMjF.ogg"
+dest_files=[ "res://.import/274679-badkitty67044-default-grass-footstep-3_ZHifNMjF.ogg-07d5cf22e8de9078b36639a8a11548be.oggstr" ]
+
+[params]
+
+loop=false
+loop_offset=0

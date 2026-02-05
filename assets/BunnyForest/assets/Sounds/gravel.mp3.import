@@ -1,0 +1,15 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+path="res://.import/gravel.mp3-9726b3a2ba3f0790431d1c542af06be4.mp3str"
+
+[deps]
+
+source_file="res://Sounds/gravel.mp3"
+dest_files=[ "res://.import/gravel.mp3-9726b3a2ba3f0790431d1c542af06be4.mp3str" ]
+
+[params]
+
+loop=false
+loop_offset=0

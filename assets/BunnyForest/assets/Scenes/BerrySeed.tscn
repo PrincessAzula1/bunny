@@ -1,0 +1,9 @@
+[gd_scene load_steps=4 format=2]
+
+[ext_resource path="res://Scenes/Seed.tscn" type="PackedScene" id=1]
+[ext_resource path="res://Scenes/BerrySeed.gd" type="Script" id=2]
+[ext_resource path="res://Sprites/seed2.png" type="Texture" id=3]
+
+[node name="BerrySeed" instance=ExtResource( 1 )]
+texture = ExtResource( 3 )
+script = ExtResource( 2 )

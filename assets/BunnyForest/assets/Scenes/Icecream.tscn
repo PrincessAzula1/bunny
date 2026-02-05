@@ -1,0 +1,181 @@
+[gd_scene load_steps=13 format=2]
+
+[ext_resource path="res://Sounds/gravel.mp3" type="AudioStream" id=1]
+[ext_resource path="res://Scenes/Icecream.gd" type="Script" id=2]
+[ext_resource path="res://Sounds/disenchant.mp3" type="AudioStream" id=3]
+[ext_resource path="res://Sprites/icecream.png" type="Texture" id=4]
+
+[sub_resource type="Shader" id=1]
+code = "/*
+Shader from Godot Shaders - the free shader library.
+godotshaders.com/shader/teleport-effect
+
+This shader is under CC0 license. Feel free to use, improve and 
+change this shader according to your needs and consider sharing 
+the modified result on godotshaders.com.
+*/
+
+shader_type canvas_item;
+
+uniform float progress : hint_range(0.0, 1.0);
+uniform float noise_desnity = 60;
+uniform float pixel_amount : hint_range(0.01, 1000.00) = 60.00;
+uniform float beam_size : hint_range(0.01, 0.15);
+uniform vec4 color : hint_color = vec4(0.0, 1.02, 1.2, 1.0);
+
+// We are generating our own noise here. You could experiment with the 
+// built in SimplexNoise or your own noise texture for other effects.
+vec2 random(vec2 uv){
+    uv = vec2( dot(uv, vec2(127.1,311.7) ),
+               dot(uv, vec2(269.5,183.3) ) );
+    return -1.0 + 2.0 * fract(sin(uv) * 43758.5453123);
+}
+
+float noise(vec2 uv) {
+    vec2 uv_index = floor(uv);
+    vec2 uv_fract = fract(uv);
+
+    vec2 blur = smoothstep(0.0, 1.0, uv_fract);
+
+    return mix( mix( dot( random(uv_index + vec2(0.0,0.0) ), uv_fract - vec2(0.0,0.0) ),
+                     dot( random(uv_index + vec2(1.0,0.0) ), uv_fract - vec2(1.0,0.0) ), blur.x),
+                mix( dot( random(uv_index + vec2(0.0,1.0) ), uv_fract - vec2(0.0,1.0) ),
+                     dot( random(uv_index + vec2(1.0,1.0) ), uv_fract - vec2(1.0,1.0) ), blur.x), blur.y) * 0.5 + 0.5;
+}
+
+void fragment()
+{
+	vec4 tex = texture(TEXTURE, UV);
+	
+	float noise = noise(UV * noise_desnity) * UV.y;
+//    vec2 grid_uv = round(UV * float(pixel_amount)) / float(pixel_amount);
+//    float noise = noise(grid_uv * noise_desnity) * UV.y;    
+	
+	float d1 = step(progress, noise);
+	float d2 = step(progress - beam_size, noise);
+	
+	vec3 beam = vec3(d2 - d1) * color.rgb;
+	
+	tex.rgb += beam;
+	tex.a *= d2;
+	
+	COLOR = tex;
+}"
+
+[sub_resource type="ShaderMaterial" id=2]
+resource_local_to_scene = true
+shader = SubResource( 1 )
+shader_param/progress = 0.0
+shader_param/noise_desnity = 60.0
+shader_param/pixel_amount = 120.0
+shader_param/beam_size = 0.1
+shader_param/color = Color( 0, 0, 0, 1 )
+
+[sub_resource type="AtlasTexture" id=15]
+atlas = ExtResource( 4 )
+region = Rect2( 0, 0, 32, 32 )
+
+[sub_resource type="AtlasTexture" id=16]
+atlas = ExtResource( 4 )
+region = Rect2( 32, 0, 32, 32 )
+
+[sub_resource type="SpriteFrames" id=17]
+animations = [ {
+"frames": [ SubResource( 15 ), SubResource( 16 ) ],
+"loop": true,
+"name": "default",
+"speed": 5.0
+} ]
+
+[sub_resource type="ParticlesMaterial" id=9]
+lifetime_randomness = 0.5
+emission_shape = 2
+emission_box_extents = Vector3( 4, 4, 2 )
+flag_disable_z = true
+direction = Vector3( 1, 1, 0 )
+spread = 180.0
+gravity = Vector3( 0, 20, 0 )
+initial_velocity = 7.0
+initial_velocity_random = 0.5
+orbit_velocity = 0.0
+orbit_velocity_random = 0.0
+
+[sub_resource type="ParticlesMaterial" id=14]
+lifetime_randomness = 0.5
+emission_shape = 5
+emission_ring_radius = 24.0
+emission_ring_inner_radius = 0.0
+emission_ring_height = 0.0
+emission_ring_axis = Vector3( 0, 0, 1 )
+flag_disable_z = true
+direction = Vector3( 1, 1, 0 )
+spread = 180.0
+gravity = Vector3( 0, 0, 0 )
+initial_velocity = 1.0
+initial_velocity_random = 0.5
+orbit_velocity = 0.0
+orbit_velocity_random = 0.0
+radial_accel = -30.0
+
+[sub_resource type="CapsuleShape2D" id=3]
+radius = 6.0
+
+[node name="Icecream" type="Area2D"]
+script = ExtResource( 2 )
+
+[node name="Sprite" type="AnimatedSprite" parent="."]
+material = SubResource( 2 )
+position = Vector2( 0, -2 )
+frames = SubResource( 17 )
+
+[node name="Particles2D" type="Particles2D" parent="Sprite"]
+position = Vector2( 0, -6 )
+emitting = false
+amount = 35
+explosiveness = 1.0
+visibility_rect = Rect2( -40, -40, 80, 80 )
+process_material = SubResource( 9 )
+
+[node name="Particles2D2" type="Particles2D" parent="Sprite"]
+position = Vector2( 0, 3 )
+emitting = false
+amount = 25
+one_shot = true
+explosiveness = 1.0
+visibility_rect = Rect2( -40, -40, 80, 80 )
+process_material = SubResource( 14 )
+
+[node name="ParcitlesTimer" type="Timer" parent="."]
+one_shot = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2( 0, 3 )
+shape = SubResource( 3 )
+disabled = true
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
+stream = ExtResource( 1 )
+volume_db = -20.0
+bus = "Effects"
+
+[node name="AudioStreamPlayerSpawn" type="AudioStreamPlayer" parent="."]
+stream = ExtResource( 3 )
+volume_db = -34.0
+pitch_scale = 0.6
+bus = "Effects"
+
+[node name="TweenVisibility" type="Tween" parent="."]
+
+[node name="TweenDown" type="Tween" parent="."]
+
+[node name="TweenUp" type="Tween" parent="."]
+
+[node name="TweenBobbing" type="Tween" parent="."]
+
+[connection signal="body_entered" from="." to="." method="_on_GoldenCarrot_body_entered"]
+[connection signal="timeout" from="ParcitlesTimer" to="." method="_on_ParcitlesTimer_timeout"]
+[connection signal="tween_all_completed" from="TweenVisibility" to="." method="_on_TweenVisibility_tween_all_completed"]
+[connection signal="tween_started" from="TweenVisibility" to="." method="_on_TweenVisibility_tween_started"]
+[connection signal="tween_completed" from="TweenDown" to="." method="_on_TweenDown_tween_completed"]
+[connection signal="tween_completed" from="TweenUp" to="." method="_on_TweenUp_tween_completed"]
+[connection signal="tween_all_completed" from="TweenBobbing" to="." method="_on_TweenBobbing_tween_all_completed"]

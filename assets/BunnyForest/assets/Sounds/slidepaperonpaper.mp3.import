@@ -1,0 +1,15 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+path="res://.import/slidepaperonpaper.mp3-6f62b87b69335998307a31a9e4b9af78.mp3str"
+
+[deps]
+
+source_file="res://Sounds/slidepaperonpaper.mp3"
+dest_files=[ "res://.import/slidepaperonpaper.mp3-6f62b87b69335998307a31a9e4b9af78.mp3str" ]
+
+[params]
+
+loop=false
+loop_offset=0
