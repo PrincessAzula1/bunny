@@ -29,10 +29,20 @@ jobs:
           flutter pub get
           flutter build web --base-href /bunny/ --release
 
-      # 4. Deploy to GitHub Pages
+      # 4. Verify build output
+      - name: Verify Build
+        run: |
+          if [ ! -f build/web/index.html ]; then
+            echo "ERROR: index.html not found in build/web!"
+            ls -la build/web/
+            exit 1
+          fi
+          echo "✓ build/web/index.html exists"
+          echo "✓ Build successful!"
+
+      # 5. Deploy to GitHub Pages
       - name: Deploy
-        uses: JamesIves/github-pages-deploy-action@v4
+        uses: peaceiris/actions-gh-pages@v3
         with:
-          branch: main
-          folder: build/web
-          clean: true
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./build/web
