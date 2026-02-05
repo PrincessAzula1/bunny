@@ -37,7 +37,7 @@ flutter:
   fonts:
     - family: Bokutoh
       fonts:
-        - asset: assets/fonts/FOT-RodinBokutoh Pro EB.otf
+        - asset: assets/fonts/MaterialIcons-Regular.otf
 
 
 flutter_icons:
