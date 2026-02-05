@@ -13,6 +13,25 @@ class BunnyForestScreen extends StatefulWidget {
 }
 
 class _BunnyForestScreenState extends State<BunnyForestScreen> {
+  bool _isLoaded = false;
+  String _status = 'Initializing Bunny Forest...';
+
+  @override
+  void initState() {
+    super.initState();
+    _startLoading();
+  }
+
+  Future<void> _startLoading() async {
+    setState(() => _status = 'Loading game assets...');
+    await Future.delayed(const Duration(milliseconds: 800));
+    if (!mounted) return;
+    setState(() {
+      _isLoaded = true;
+      _status = '🎮 Game Ready - Tap bunnies to play';
+    });
+  }
+
   void _goBack() {
     Navigator.pop(context);
   }
@@ -29,30 +48,98 @@ class _BunnyForestScreenState extends State<BunnyForestScreen> {
         elevation: 0,
       ),
       body: Container(
-        color: const Color(0xFF2d5016),
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Text(
-                '🐰 Welcome to Bunny Forest!',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFF2d5016), Color(0xFF4a7c2c)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: SafeArea(
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1000),
+              child: Column(
+                children: [
+                  const SizedBox(height: 12),
+                  const Text(
+                    '🐰 Bunny Forest',
+                    style: TextStyle(
                       color: Colors.white,
+                      fontSize: 42,
                       fontWeight: FontWeight.bold,
                     ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 12),
+                  if (!_isLoaded) ...[
+                    const SizedBox(height: 16),
+                    const SizedBox(
+                      width: 60,
+                      height: 60,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 4,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  Text(
+                    _status,
+                    style: const TextStyle(
+                      color: Colors.white70,
+                      fontSize: 18,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 20),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 18,
+                      vertical: 14,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Text(
+                      'The Bunny Forest game is ready.\nTap the bunnies to collect carrots and score points!',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        height: 1.4,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Expanded(
+                    child: Container(
+                      margin: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.white, width: 2),
+                        borderRadius: BorderRadius.circular(10),
+                        color: const Color(0xFF2d5016),
+                      ),
+                      child: _isLoaded
+                          ? const GameBoardWidget()
+                          : const Center(
+                              child: Text(
+                                'Preparing the forest...',
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                ],
               ),
             ),
-            Expanded(
-              child: Container(
-                margin: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.white, width: 2),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const GameBoardWidget(),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
