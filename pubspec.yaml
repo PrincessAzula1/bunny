@@ -32,7 +32,6 @@ flutter:
     - assets/videos/
     - assets/audio/
     - assets/images/
-    - web/bunny_forest.html
 
   fonts:
     - family: Bokutoh
