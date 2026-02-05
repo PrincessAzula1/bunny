@@ -23,18 +23,23 @@ jobs:
         with:
           flutter-version: '3.27.3'
 
-      # 3. Install dependencies and build for the web
+      # 3. Enable web + install dependencies + build for the web
       - name: Build Web
         run: |
+          flutter config --enable-web
+          flutter doctor -v
           flutter pub get
           flutter build web --base-href /bunny/ --release
 
       # 4. Verify build output
       - name: Verify Build
         run: |
+          echo "Build output directory:"
+          ls -la build/
+          echo "Web build output directory:"
+          ls -la build/web/ || true
           if [ ! -f build/web/index.html ]; then
             echo "ERROR: index.html not found in build/web!"
-            ls -la build/web/
             exit 1
           fi
           echo "✓ build/web/index.html exists"
