@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:http/http.dart' as http;
+import 'game_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -393,6 +394,15 @@ class _BunnyScreenState extends State<BunnyScreen> {
   @override
   Widget build(BuildContext context) {
     bool isTypingComplete = charIndex >= currentMessage.length;
+    final size = MediaQuery.of(context).size;
+    final isPortrait = size.height > size.width;
+    final isMobile = size.width < 600;
+
+    // Responsive sizes
+    final bubbleWidth = isMobile ? size.width * 0.85 : 500.0;
+    final textWidth = isMobile ? size.width * 0.65 : 400.0;
+    final fontSize = isMobile ? 16.0 : 20.0;
+    final returnButtonSize = isMobile ? 40.0 : 50.0;
 
     return Scaffold(
       body: Stack(
@@ -413,38 +423,40 @@ class _BunnyScreenState extends State<BunnyScreen> {
               onTap: _returnToHome,
               child: Image.asset(
                 "assets/images/return.png",
-                width: 50,
-                height: 50,
+                width: returnButtonSize,
+                height: returnButtonSize,
               ),
             ),
           ),
 
           // 💬 Bubble Image + Typing Text
           Positioned(
-            bottom: 30,
+            bottom: isMobile ? 80 : 30,
             left: 0,
-            right: -260,
+            right: isMobile ? 0 : -260,
             child: Center(
               child: Stack(
                 alignment: Alignment.center,
                 children: [
                   Image.asset(
                     "assets/images/Bubble.png",
-                    width: 500,
+                    width: bubbleWidth,
                   ),
                   Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 68, vertical: 9),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: bubbleWidth * 0.136,
+                      vertical: 9,
+                    ),
                     child: SizedBox(
-                      width: 400,
+                      width: textWidth,
                       child: Text(
                         currentMessage.substring(0, charIndex),
                         textAlign: TextAlign.center,
                         maxLines: 4,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: 'Bokutoh',
-                          fontSize: 20,
+                          fontSize: fontSize,
                           color: Colors.black,
                         ),
                       ),
@@ -462,10 +474,61 @@ class _BunnyScreenState extends State<BunnyScreen> {
               left: 0,
               right: 0,
               child: Center(
-                child: ElevatedButton(
-                  onPressed: _nextMessage,
-                  child: const Text("Next"),
-                ),
+                child: isMobile
+                    ? Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ElevatedButton(
+                            onPressed: _nextMessage,
+                            child: const Text("Next"),
+                          ),
+                          const SizedBox(height: 10),
+                          ElevatedButton(
+                            onPressed: () async {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => GameScreen(
+                                      musicPlayer: widget.musicPlayer),
+                                ),
+                              );
+                              // Resume music when returning
+                              _resetMusicPlayer();
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.green,
+                            ),
+                            child: const Text("Play BunnyHop"),
+                          ),
+                        ],
+                      )
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          ElevatedButton(
+                            onPressed: _nextMessage,
+                            child: const Text("Next"),
+                          ),
+                          const SizedBox(width: 20),
+                          ElevatedButton(
+                            onPressed: () async {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => GameScreen(
+                                      musicPlayer: widget.musicPlayer),
+                                ),
+                              );
+                              // Resume music when returning
+                              _resetMusicPlayer();
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.green,
+                            ),
+                            child: const Text("Play BunnyHop"),
+                          ),
+                        ],
+                      ),
               ),
             ),
         ],
