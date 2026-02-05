@@ -347,7 +347,12 @@ class _BunnyScreenState extends State<BunnyScreen> {
   @override
   void initState() {
     super.initState();
-    SystemChrome.setPreferredOrientations([DeviceOrientation.landscapeRight]);
+    // Allow flexible orientations - support both portrait and landscape
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.landscapeRight,
+      DeviceOrientation.landscapeLeft,
+    ]);
 
     // Resume looping music if it's not playing
     _resetMusicPlayer();
@@ -467,68 +472,82 @@ class _BunnyScreenState extends State<BunnyScreen> {
             ),
           ),
 
-          // ▶️ Next Button (appears after message finishes typing)
+          // ▶️ Buttons (appear after message finishes typing)
           if (isTypingComplete)
             Positioned(
               bottom: 20,
-              left: 0,
-              right: 0,
+              left: 20,
+              right: 20,
               child: Center(
-                child: isMobile
-                    ? Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          ElevatedButton(
-                            onPressed: _nextMessage,
-                            child: const Text("Next"),
-                          ),
-                          const SizedBox(height: 10),
-                          ElevatedButton(
-                            onPressed: () async {
-                              await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => GameScreen(
-                                      musicPlayer: widget.musicPlayer),
-                                ),
-                              );
-                              // Resume music when returning
-                              _resetMusicPlayer();
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.green,
+                child: Container(
+                  constraints:
+                      BoxConstraints(maxWidth: isMobile ? size.width : 600),
+                  child: isMobile || isPortrait
+                      ? Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                onPressed: _nextMessage,
+                                child: const Text("Next"),
+                              ),
                             ),
-                            child: const Text("Play BunnyHop"),
-                          ),
-                        ],
-                      )
-                    : Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          ElevatedButton(
-                            onPressed: _nextMessage,
-                            child: const Text("Next"),
-                          ),
-                          const SizedBox(width: 20),
-                          ElevatedButton(
-                            onPressed: () async {
-                              await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => GameScreen(
-                                      musicPlayer: widget.musicPlayer),
+                            const SizedBox(height: 10),
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                onPressed: () async {
+                                  await Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => GameScreen(
+                                          musicPlayer: widget.musicPlayer),
+                                    ),
+                                  );
+                                  // Resume music when returning
+                                  _resetMusicPlayer();
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.green,
                                 ),
-                              );
-                              // Resume music when returning
-                              _resetMusicPlayer();
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.green,
+                                child: const Text("Play BunnyHop"),
+                              ),
                             ),
-                            child: const Text("Play BunnyHop"),
-                          ),
-                        ],
-                      ),
+                          ],
+                        )
+                      : Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Expanded(
+                              child: ElevatedButton(
+                                onPressed: _nextMessage,
+                                child: const Text("Next"),
+                              ),
+                            ),
+                            const SizedBox(width: 20),
+                            Expanded(
+                              child: ElevatedButton(
+                                onPressed: () async {
+                                  await Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => GameScreen(
+                                          musicPlayer: widget.musicPlayer),
+                                    ),
+                                  );
+                                  // Resume music when returning
+                                  _resetMusicPlayer();
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.green,
+                                ),
+                                child: const Text("Play BunnyHop"),
+                              ),
+                            ),
+                          ],
+                        ),
+                ),
               ),
             ),
         ],
