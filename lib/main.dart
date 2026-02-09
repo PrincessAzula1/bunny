@@ -91,6 +91,7 @@ class _StartVideoScreenState extends State<StartVideoScreen>
   }
 
   Future<void> _initializeVideo() async {
+    debugPrint('Starting video initialization...');
     _videoController =
         VideoPlayerController.asset('assets/videos/start_menu.mp4');
 
@@ -114,9 +115,10 @@ class _StartVideoScreenState extends State<StartVideoScreen>
       }
     });
 
-    // Set a timeout to show tap-to-start if video takes too long
-    Future.delayed(const Duration(seconds: 3), () {
+    // Set a shorter timeout to show tap-to-start if video takes too long
+    Future.delayed(const Duration(milliseconds: 1500), () {
       if (mounted && !_videoController.value.isPlaying) {
+        debugPrint('Video timeout - showing tap to start overlay');
         setState(() {
           _showTapToStart = true;
           _loadingTimedOut = true;
@@ -125,7 +127,10 @@ class _StartVideoScreenState extends State<StartVideoScreen>
     });
 
     try {
+      debugPrint('Calling initialize...');
       await _videoController.initialize();
+      debugPrint('Video initialized successfully');
+
       if (mounted) {
         await _videoController.setLooping(true);
         // Set volume to ensure it's not muted
@@ -134,24 +139,32 @@ class _StartVideoScreenState extends State<StartVideoScreen>
         setState(() {
           _isVideoInitialized = true;
         });
+        debugPrint('Video state updated, attempting to play...');
 
         // Try to play (may fail on mobile without user interaction)
         await _videoController.play();
+        debugPrint('Play command sent');
 
         // Check if actually playing after a short delay
         await Future.delayed(const Duration(milliseconds: 500));
+        debugPrint('Video playing status: ${_videoController.value.isPlaying}');
         if (mounted && !_videoController.value.isPlaying) {
+          debugPrint('Video not playing - showing tap overlay');
           setState(() {
             _showTapToStart = true;
           });
+        } else {
+          debugPrint('Video is playing successfully!');
         }
       }
     } catch (e) {
       debugPrint('Error initializing video: $e');
       // Retry once after a short delay if initialization fails
       await Future.delayed(const Duration(milliseconds: 500));
+      debugPrint('Retrying video initialization...');
       try {
         await _videoController.initialize();
+        debugPrint('Video initialized on retry');
         if (mounted) {
           await _videoController.setLooping(true);
           await _videoController.setVolume(1.0);
@@ -159,10 +172,15 @@ class _StartVideoScreenState extends State<StartVideoScreen>
             _isVideoInitialized = true;
           });
           await _videoController.play();
+          debugPrint('Play command sent on retry');
 
           // Check if actually playing after a short delay
           await Future.delayed(const Duration(milliseconds: 500));
+          debugPrint(
+              'Retry - Video playing status: ${_videoController.value.isPlaying}');
           if (mounted && !_videoController.value.isPlaying) {
+            debugPrint(
+                'Video still not playing after retry - showing tap overlay');
             setState(() {
               _showTapToStart = true;
             });
@@ -176,6 +194,7 @@ class _StartVideoScreenState extends State<StartVideoScreen>
             _isVideoInitialized = true;
             _showTapToStart = true;
           });
+          debugPrint('Showing tap overlay due to initialization failure');
         }
       }
     }
@@ -183,14 +202,38 @@ class _StartVideoScreenState extends State<StartVideoScreen>
 
   // Manual play trigger for mobile devices
   Future<void> _tryPlayVideo() async {
+    debugPrint('Tap detected - attempting to play video');
+    debugPrint('Video initialized: $_isVideoInitialized');
+    debugPrint(
+        'Controller value initialized: ${_videoController.value.isInitialized}');
+
     try {
-      if (_isVideoInitialized) {
-        await _videoController.play();
+      // If not initialized yet, try to initialize first
+      if (!_videoController.value.isInitialized) {
+        debugPrint('Initializing video on tap...');
+        await _videoController.initialize();
+        await _videoController.setLooping(true);
+        await _videoController.setVolume(1.0);
+        setState(() {
+          _isVideoInitialized = true;
+        });
+      }
+
+      // Now try to play
+      debugPrint('Playing video...');
+      await _videoController.play();
+
+      // Check if it started playing
+      await Future.delayed(const Duration(milliseconds: 300));
+      if (_videoController.value.isPlaying) {
+        debugPrint('Video is now playing!');
         if (mounted) {
           setState(() {
             _showTapToStart = false;
           });
         }
+      } else {
+        debugPrint('Video failed to play after tap');
       }
     } catch (e) {
       debugPrint('Error playing video: $e');
@@ -314,9 +357,22 @@ class _StartVideoScreenState extends State<StartVideoScreen>
                   )
                 : Container(
                     color: Colors.black,
-                    child: const Center(
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const CircularProgressIndicator(
+                            color: Colors.white,
+                          ),
+                          const SizedBox(height: 20),
+                          Text(
+                            'Loading video...',
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
