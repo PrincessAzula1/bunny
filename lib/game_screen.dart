@@ -98,8 +98,18 @@ class _GameScreenState extends State<GameScreen> {
         ui_web.platformViewRegistry.registerViewFactory(
           viewType,
           (int viewId) {
+            // Get the current base URL to handle GitHub Pages deployment
+            final baseUrl = html.window.location.origin ?? '';
+            final basePath = html.document.baseUri ?? '';
+            // Construct the full path for the Unity game
+            final gamePath = basePath.endsWith('/')
+                ? '${basePath}assets/bunnyhop/web_1.2.1/index.html'
+                : '$basePath/assets/bunnyhop/web_1.2.1/index.html';
+
+            debugPrint('Loading Unity game from: $gamePath');
+
             _iframe = html.IFrameElement()
-              ..src = 'assets/bunnyhop/web_1.2.1/index.html'
+              ..src = gamePath
               ..style.border = 'none'
               ..style.width = '100%'
               ..style.height = '100%'
@@ -108,6 +118,7 @@ class _GameScreenState extends State<GameScreen> {
           },
         );
       } catch (e) {
+        debugPrint('Error registering iframe: $e');
         // Already registered, ignore
       }
 
