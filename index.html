@@ -23,7 +23,8 @@
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="bunny_love_app">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
@@ -32,6 +33,27 @@
 
   <title>bunny_love_app</title>
   <link rel="manifest" href="manifest.json">
+  <script>
+    // Request fullscreen on load for PWA
+    window.addEventListener('load', function() {
+      if (window.matchMedia('(display-mode: fullscreen)').matches || 
+          window.matchMedia('(display-mode: standalone)').matches) {
+        // Already in PWA mode, try to go fullscreen
+        setTimeout(function() {
+          const elem = document.documentElement;
+          if (elem.requestFullscreen) {
+            elem.requestFullscreen().catch(() => {});
+          } else if (elem.webkitRequestFullscreen) {
+            elem.webkitRequestFullscreen();
+          } else if (elem.mozRequestFullScreen) {
+            elem.mozRequestFullScreen();
+          } else if (elem.msRequestFullscreen) {
+            elem.msRequestFullscreen();
+          }
+        }, 100);
+      }
+    });
+  </script>
 </head>
 <body>
   <script src="flutter_bootstrap.js" async></script>
