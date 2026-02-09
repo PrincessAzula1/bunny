@@ -685,13 +685,28 @@ class _BunnyScreenState extends State<BunnyScreen> {
     bool isTypingComplete = charIndex >= currentMessage.length;
     final size = MediaQuery.of(context).size;
     final isPortrait = size.height > size.width;
-    final isMobile = size.width < 600;
+    final isLandscape = !isPortrait;
+    final isMobile = size.width < 600 || size.height < 600;
+    final isMobileLandscape = isMobile && isLandscape;
 
-    // Responsive sizes
-    final bubbleWidth = isMobile ? size.width * 0.85 : 500.0;
-    final textWidth = isMobile ? size.width * 0.65 : 400.0;
-    final fontSize = isMobile ? 16.0 : 20.0;
-    final returnButtonSize = isMobile ? 40.0 : 50.0;
+    // Responsive sizes - more aggressive scaling for mobile landscape
+    double scaleFactor = 1.0;
+    if (isMobileLandscape) {
+      // Scale everything down to fit landscape phone screen
+      scaleFactor = size.height / 900; // Base scale on height in landscape
+      scaleFactor =
+          scaleFactor.clamp(0.35, 0.7); // Don't scale too small or large
+    }
+
+    final bubbleWidth = isMobileLandscape
+        ? size.width * 0.6
+        : (isMobile ? size.width * 0.85 : 500.0);
+    final textWidth = isMobileLandscape
+        ? size.width * 0.45
+        : (isMobile ? size.width * 0.65 : 400.0);
+    final fontSize = isMobileLandscape ? 12.0 : (isMobile ? 16.0 : 20.0);
+    final returnButtonSize =
+        isMobileLandscape ? 30.0 : (isMobile ? 40.0 : 50.0);
 
     return Scaffold(
       body: Stack(
@@ -719,8 +734,8 @@ class _BunnyScreenState extends State<BunnyScreen> {
 
           // ↩️ Return Button (Top Right) - Using Icon as fallback
           Positioned(
-            top: 20,
-            right: 20,
+            top: isMobileLandscape ? 10 : 20,
+            right: isMobileLandscape ? 10 : 20,
             child: Material(
               color: Colors.white.withOpacity(0.9),
               borderRadius: BorderRadius.circular(25),
@@ -753,9 +768,10 @@ class _BunnyScreenState extends State<BunnyScreen> {
 
           // 💬 Bubble Image + Typing Text
           Positioned(
-            bottom: isMobile ? 80 : 30,
+            bottom:
+                isMobileLandscape ? size.height * 0.12 : (isMobile ? 80 : 30),
             left: 0,
-            right: isMobile ? 0 : -260,
+            right: isMobileLandscape ? 0 : (isMobile ? 0 : -260),
             child: Center(
               child: Stack(
                 alignment: Alignment.center,
@@ -788,19 +804,20 @@ class _BunnyScreenState extends State<BunnyScreen> {
                   Padding(
                     padding: EdgeInsets.symmetric(
                       horizontal: bubbleWidth * 0.136,
-                      vertical: 9,
+                      vertical: isMobileLandscape ? 6 : 9,
                     ),
                     child: SizedBox(
                       width: textWidth,
                       child: Text(
                         currentMessage.substring(0, charIndex),
                         textAlign: TextAlign.center,
-                        maxLines: 4,
+                        maxLines: isMobileLandscape ? 2 : 4,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontFamily: 'Bokutoh',
                           fontSize: fontSize,
                           color: Colors.black,
+                          height: isMobileLandscape ? 1.2 : 1.4,
                           // Fallback if font doesn't load
                           fontFamilyFallback: const ['Arial', 'sans-serif'],
                         ),
@@ -815,14 +832,14 @@ class _BunnyScreenState extends State<BunnyScreen> {
           // ▶️ Buttons (appear after message finishes typing)
           if (isTypingComplete)
             Positioned(
-              bottom: 20,
+              bottom: isMobileLandscape ? 10 : 20,
               left: 20,
               right: 20,
               child: Center(
                 child: Container(
                   constraints:
                       BoxConstraints(maxWidth: isMobile ? size.width : 600),
-                  child: isMobile || isPortrait
+                  child: (isMobile && !isMobileLandscape) || isPortrait
                       ? Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -830,10 +847,20 @@ class _BunnyScreenState extends State<BunnyScreen> {
                               width: double.infinity,
                               child: ElevatedButton(
                                 onPressed: _nextMessage,
-                                child: const Text("Next"),
+                                style: ElevatedButton.styleFrom(
+                                  padding: EdgeInsets.symmetric(
+                                    vertical: isMobileLandscape ? 8 : 12,
+                                  ),
+                                ),
+                                child: Text(
+                                  "Next",
+                                  style: TextStyle(
+                                    fontSize: isMobileLandscape ? 12 : 16,
+                                  ),
+                                ),
                               ),
                             ),
-                            const SizedBox(height: 10),
+                            SizedBox(height: isMobileLandscape ? 5 : 10),
                             SizedBox(
                               width: double.infinity,
                               child: ElevatedButton(
@@ -850,8 +877,16 @@ class _BunnyScreenState extends State<BunnyScreen> {
                                 },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.green,
+                                  padding: EdgeInsets.symmetric(
+                                    vertical: isMobileLandscape ? 8 : 12,
+                                  ),
                                 ),
-                                child: const Text("Play BunnyHop"),
+                                child: Text(
+                                  "Play BunnyHop",
+                                  style: TextStyle(
+                                    fontSize: isMobileLandscape ? 12 : 16,
+                                  ),
+                                ),
                               ),
                             ),
                           ],
@@ -862,10 +897,20 @@ class _BunnyScreenState extends State<BunnyScreen> {
                             Expanded(
                               child: ElevatedButton(
                                 onPressed: _nextMessage,
-                                child: const Text("Next"),
+                                style: ElevatedButton.styleFrom(
+                                  padding: EdgeInsets.symmetric(
+                                    vertical: isMobileLandscape ? 8 : 12,
+                                  ),
+                                ),
+                                child: Text(
+                                  "Next",
+                                  style: TextStyle(
+                                    fontSize: isMobileLandscape ? 12 : 16,
+                                  ),
+                                ),
                               ),
                             ),
-                            const SizedBox(width: 20),
+                            SizedBox(width: isMobileLandscape ? 10 : 20),
                             Expanded(
                               child: ElevatedButton(
                                 onPressed: () async {
@@ -881,8 +926,16 @@ class _BunnyScreenState extends State<BunnyScreen> {
                                 },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.green,
+                                  padding: EdgeInsets.symmetric(
+                                    vertical: isMobileLandscape ? 8 : 12,
+                                  ),
                                 ),
-                                child: const Text("Play BunnyHop"),
+                                child: Text(
+                                  "Play BunnyHop",
+                                  style: TextStyle(
+                                    fontSize: isMobileLandscape ? 12 : 16,
+                                  ),
+                                ),
                               ),
                             ),
                           ],
