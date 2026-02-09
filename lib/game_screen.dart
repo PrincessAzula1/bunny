@@ -94,18 +94,41 @@ class _GameScreenState extends State<GameScreen> {
     }
   }
 
-  // Simulate mouse button down
+  // Simulate jump action using Space key or Right click
   void _simulateJumpPress() {
     if (kIsWeb && _iframe != null) {
-      _iframe!.contentWindow?.postMessage({
-        'type': 'mousedown',
-        'button': 2, // Right click
-      }, '*');
+      try {
+        // Try to dispatch keyboard event for Space key
+        js.context.callMethod('eval', [
+          '''
+          var spaceEvent = new KeyboardEvent('keydown', {
+            key: 'Space',
+            code: 'Space',
+            keyCode: 32,
+            which: 32,
+            bubbles: true
+          });
+          document.dispatchEvent(spaceEvent);
+          
+          // Also try mousedown as backup
+          var mouseEvent = new MouseEvent('mousedown', {
+            button: 2,
+            buttons: 2,
+            bubbles: true
+          });
+          document.dispatchEvent(mouseEvent);
+        '''
+        ]);
+      } catch (e) {
+        debugPrint('Jump press failed: $e');
+      }
     } else if (_webViewController != null) {
       _webViewController!.evaluateJavascript(source: '''
-        var event = new MouseEvent('mousedown', {
-          button: 2,
-          buttons: 2,
+        var event = new KeyboardEvent('keydown', {
+          key: 'Space',
+          code: 'Space',
+          keyCode: 32,
+          which: 32,
           bubbles: true
         });
         document.dispatchEvent(event);
@@ -113,18 +136,39 @@ class _GameScreenState extends State<GameScreen> {
     }
   }
 
-  // Simulate mouse button up
+  // Simulate jump release
   void _simulateJumpRelease() {
     if (kIsWeb && _iframe != null) {
-      _iframe!.contentWindow?.postMessage({
-        'type': 'mouseup',
-        'button': 2,
-      }, '*');
+      try {
+        js.context.callMethod('eval', [
+          '''
+          var spaceEvent = new KeyboardEvent('keyup', {
+            key: 'Space',
+            code: 'Space',
+            keyCode: 32,
+            which: 32,
+            bubbles: true
+          });
+          document.dispatchEvent(spaceEvent);
+          
+          var mouseEvent = new MouseEvent('mouseup', {
+            button: 2,
+            buttons: 0,
+            bubbles: true
+          });
+          document.dispatchEvent(mouseEvent);
+        '''
+        ]);
+      } catch (e) {
+        debugPrint('Jump release failed: $e');
+      }
     } else if (_webViewController != null) {
       _webViewController!.evaluateJavascript(source: '''
-        var event = new MouseEvent('mouseup', {
-          button: 2,
-          buttons: 0,
+        var event = new KeyboardEvent('keyup', {
+          key: 'Space',
+          code: 'Space',
+          keyCode: 32,
+          which: 32,
           bubbles: true
         });
         document.dispatchEvent(event);
@@ -157,7 +201,9 @@ class _GameScreenState extends State<GameScreen> {
               ..style.border = 'none'
               ..style.width = '100%'
               ..style.height = '100%'
-              ..setAttribute('allow', 'autoplay');
+              ..style.pointerEvents = 'auto'
+              ..setAttribute('allow', 'autoplay')
+              ..setAttribute('allowfullscreen', 'true');
             return _iframe!;
           },
         );
@@ -171,30 +217,30 @@ class _GameScreenState extends State<GameScreen> {
         body: Stack(
           children: [
             const HtmlElementView(viewType: viewType),
-            // Small return button (top-left corner)
+            // Small return button (top-right corner, away from game controls)
             Positioned(
-              top: 15,
-              left: 15,
+              top: 10,
+              right: 10,
               child: Material(
                 color: Colors.white.withOpacity(0.9),
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(17.5),
                 elevation: 4,
                 child: InkWell(
                   onTap: () => Navigator.of(context).pop(),
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(17.5),
                   child: Container(
-                    width: 40,
-                    height: 40,
-                    padding: const EdgeInsets.all(8),
+                    width: 35,
+                    height: 35,
+                    padding: const EdgeInsets.all(7),
                     child: Image.asset(
                       "assets/images/return.png",
-                      width: 24,
-                      height: 24,
+                      width: 21,
+                      height: 21,
                       errorBuilder: (context, error, stackTrace) {
                         return const Icon(
                           Icons.arrow_back,
                           color: Colors.black87,
-                          size: 24,
+                          size: 21,
                         );
                       },
                     ),
@@ -202,23 +248,23 @@ class _GameScreenState extends State<GameScreen> {
                 ),
               ),
             ),
-            // Mobile touch controls overlay
+            // Mobile touch controls overlay - JUMP button (bottom-right)
             if (isMobile)
               Positioned(
-                bottom: 40,
-                right: 40,
+                bottom: 30,
+                right: 30,
                 child: GestureDetector(
                   onTapDown: (_) => _simulateJumpPress(),
                   onTapUp: (_) => _simulateJumpRelease(),
                   onTapCancel: () => _simulateJumpRelease(),
                   child: Container(
-                    width: 80,
-                    height: 80,
+                    width: 70,
+                    height: 70,
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.3),
+                      color: Colors.white.withOpacity(0.4),
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: Colors.white.withOpacity(0.6),
+                        color: Colors.white.withOpacity(0.7),
                         width: 3,
                       ),
                     ),
@@ -228,7 +274,14 @@ class _GameScreenState extends State<GameScreen> {
                         style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
-                          fontSize: 14,
+                          fontSize: 13,
+                          shadows: [
+                            Shadow(
+                              color: Colors.black,
+                              blurRadius: 2,
+                              offset: Offset(1, 1),
+                            ),
+                          ],
                         ),
                       ),
                     ),
@@ -258,30 +311,30 @@ class _GameScreenState extends State<GameScreen> {
                 _webViewController = controller;
               },
             ),
-            // Small return button (top-left corner)
+            // Small return button (top-right corner, away from game controls)
             Positioned(
-              top: 15,
-              left: 15,
+              top: 10,
+              right: 10,
               child: Material(
                 color: Colors.white.withOpacity(0.9),
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(17.5),
                 elevation: 4,
                 child: InkWell(
                   onTap: () => Navigator.of(context).pop(),
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(17.5),
                   child: Container(
-                    width: 40,
-                    height: 40,
-                    padding: const EdgeInsets.all(8),
+                    width: 35,
+                    height: 35,
+                    padding: const EdgeInsets.all(7),
                     child: Image.asset(
                       "assets/images/return.png",
-                      width: 24,
-                      height: 24,
+                      width: 21,
+                      height: 21,
                       errorBuilder: (context, error, stackTrace) {
                         return const Icon(
                           Icons.arrow_back,
                           color: Colors.black87,
-                          size: 24,
+                          size: 21,
                         );
                       },
                     ),
@@ -289,22 +342,22 @@ class _GameScreenState extends State<GameScreen> {
                 ),
               ),
             ),
-            // Mobile touch controls overlay
+            // Mobile touch controls overlay - JUMP button (bottom-right)
             Positioned(
-              bottom: 40,
-              right: 40,
+              bottom: 30,
+              right: 30,
               child: GestureDetector(
                 onTapDown: (_) => _simulateJumpPress(),
                 onTapUp: (_) => _simulateJumpRelease(),
                 onTapCancel: () => _simulateJumpRelease(),
                 child: Container(
-                  width: 80,
-                  height: 80,
+                  width: 70,
+                  height: 70,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.3),
+                    color: Colors.white.withOpacity(0.4),
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: Colors.white.withOpacity(0.6),
+                      color: Colors.white.withOpacity(0.7),
                       width: 3,
                     ),
                   ),
@@ -314,7 +367,14 @@ class _GameScreenState extends State<GameScreen> {
                       style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
-                        fontSize: 14,
+                        fontSize: 13,
+                        shadows: [
+                          Shadow(
+                            color: Colors.black,
+                            blurRadius: 2,
+                            offset: Offset(1, 1),
+                          ),
+                        ],
                       ),
                     ),
                   ),
