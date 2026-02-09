@@ -179,7 +179,8 @@ class _GameScreenState extends State<GameScreen> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    final isMobile = size.width < 600;
+    // Check if mobile by width OR height (landscape phones have small height)
+    final isMobile = size.width < 800 || size.height < 800;
 
     if (kIsWeb) {
       // Register the iframe view factory for web
@@ -201,6 +202,8 @@ class _GameScreenState extends State<GameScreen> {
               ..style.border = 'none'
               ..style.width = '100%'
               ..style.height = '100%'
+              ..style.transform = 'scale(0.85)'
+              ..style.transformOrigin = 'top left'
               ..style.pointerEvents = 'auto'
               ..setAttribute('allow', 'autoplay')
               ..setAttribute('allowfullscreen', 'true');
@@ -217,6 +220,21 @@ class _GameScreenState extends State<GameScreen> {
         body: Stack(
           children: [
             const HtmlElementView(viewType: viewType),
+            // Full screen touch area for jumping (invisible)
+            if (isMobile)
+              Positioned.fill(
+                child: GestureDetector(
+                  behavior: HitTestBehavior.translucent,
+                  onTapDown: (_) => _simulateJumpPress(),
+                  onTapUp: (_) => _simulateJumpRelease(),
+                  onTapCancel: () => _simulateJumpRelease(),
+                  onLongPressStart: (_) => _simulateJumpPress(),
+                  onLongPressEnd: (_) => _simulateJumpRelease(),
+                  child: Container(
+                    color: Colors.transparent,
+                  ),
+                ),
+              ),
             // Small return button (top-right corner, away from game controls)
             Positioned(
               top: 10,
@@ -226,7 +244,9 @@ class _GameScreenState extends State<GameScreen> {
                 borderRadius: BorderRadius.circular(17.5),
                 elevation: 4,
                 child: InkWell(
-                  onTap: () => Navigator.of(context).pop(),
+                  onTap: () {
+                    Navigator.pop(context);
+                  },
                   borderRadius: BorderRadius.circular(17.5),
                   child: Container(
                     width: 35,
@@ -248,46 +268,6 @@ class _GameScreenState extends State<GameScreen> {
                 ),
               ),
             ),
-            // Mobile touch controls overlay - JUMP button (bottom-right)
-            if (isMobile)
-              Positioned(
-                bottom: 30,
-                right: 30,
-                child: GestureDetector(
-                  onTapDown: (_) => _simulateJumpPress(),
-                  onTapUp: (_) => _simulateJumpRelease(),
-                  onTapCancel: () => _simulateJumpRelease(),
-                  child: Container(
-                    width: 70,
-                    height: 70,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.4),
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Colors.white.withOpacity(0.7),
-                        width: 3,
-                      ),
-                    ),
-                    child: const Center(
-                      child: Text(
-                        'JUMP',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13,
-                          shadows: [
-                            Shadow(
-                              color: Colors.black,
-                              blurRadius: 2,
-                              offset: Offset(1, 1),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
           ],
         ),
       );
@@ -311,6 +291,20 @@ class _GameScreenState extends State<GameScreen> {
                 _webViewController = controller;
               },
             ),
+            // Full screen touch area for jumping (invisible)
+            Positioned.fill(
+              child: GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onTapDown: (_) => _simulateJumpPress(),
+                onTapUp: (_) => _simulateJumpRelease(),
+                onTapCancel: () => _simulateJumpRelease(),
+                onLongPressStart: (_) => _simulateJumpPress(),
+                onLongPressEnd: (_) => _simulateJumpRelease(),
+                child: Container(
+                  color: Colors.transparent,
+                ),
+              ),
+            ),
             // Small return button (top-right corner, away from game controls)
             Positioned(
               top: 10,
@@ -320,7 +314,9 @@ class _GameScreenState extends State<GameScreen> {
                 borderRadius: BorderRadius.circular(17.5),
                 elevation: 4,
                 child: InkWell(
-                  onTap: () => Navigator.of(context).pop(),
+                  onTap: () {
+                    Navigator.pop(context);
+                  },
                   borderRadius: BorderRadius.circular(17.5),
                   child: Container(
                     width: 35,
@@ -337,45 +333,6 @@ class _GameScreenState extends State<GameScreen> {
                           size: 21,
                         );
                       },
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            // Mobile touch controls overlay - JUMP button (bottom-right)
-            Positioned(
-              bottom: 30,
-              right: 30,
-              child: GestureDetector(
-                onTapDown: (_) => _simulateJumpPress(),
-                onTapUp: (_) => _simulateJumpRelease(),
-                onTapCancel: () => _simulateJumpRelease(),
-                child: Container(
-                  width: 70,
-                  height: 70,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.4),
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: Colors.white.withOpacity(0.7),
-                      width: 3,
-                    ),
-                  ),
-                  child: const Center(
-                    child: Text(
-                      'JUMP',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                        shadows: [
-                          Shadow(
-                            color: Colors.black,
-                            blurRadius: 2,
-                            offset: Offset(1, 1),
-                          ),
-                        ],
-                      ),
                     ),
                   ),
                 ),
