@@ -602,10 +602,18 @@ class _BunnyScreenState extends State<BunnyScreen> {
 
   void _lockLandscape() {
     if (kIsWeb) {
-      // For web browsers, use Screen Orientation API
+      // For web browsers and PWAs, use Screen Orientation API
       try {
-        js.context.callMethod(
-            'eval', ['screen.orientation.lock("landscape").catch(() => {})']);
+        js.context.callMethod('eval', [
+          '''
+          if (screen.orientation && screen.orientation.lock) {
+            screen.orientation.lock("landscape").then(
+              () => console.log("Landscape locked"),
+              (err) => console.log("Lock failed:", err)
+            );
+          }
+          '''
+        ]);
       } catch (e) {
         debugPrint('Web orientation lock failed: $e');
       }
