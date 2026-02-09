@@ -312,21 +312,21 @@ class _StartVideoScreenState extends State<StartVideoScreen>
   }
 
   Future<void> _goNext() async {
-    try {
-      _videoController.pause();
-      await _musicPlayer.stop();
-    } catch (_) {}
+    if (!mounted) return;
 
-    try {
-      await _musicPlayer.setReleaseMode(ReleaseMode.stop);
-      await _musicPlayer.play(AssetSource('audio/flash.mp3'));
-      await Future.delayed(const Duration(seconds: 1));
-      await _musicPlayer.stop();
-    } catch (_) {}
+    // Non-blocking cleanup
+    _videoController.pause().catchError((_) {});
+    _musicPlayer.stop().catchError((_) {});
+
+    // Play flash sound without blocking
+    _musicPlayer.setReleaseMode(ReleaseMode.stop).then((_) {
+      _musicPlayer.play(AssetSource('audio/flash.mp3')).catchError((_) {});
+    }).catchError((_) {});
 
     setState(() => _flash = true);
 
-    await Future.delayed(const Duration(milliseconds: 500));
+    // Quick delay then navigate
+    await Future.delayed(const Duration(milliseconds: 300));
 
     if (!mounted) return;
     Navigator.pushReplacement(
@@ -348,174 +348,178 @@ class _StartVideoScreenState extends State<StartVideoScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: GestureDetector(
-        onTap: _showTapToStart ? _tryPlayVideo : null,
-        behavior: HitTestBehavior.translucent,
-        child: Stack(
-          children: [
-            // 🎥 VIDEO
-            _isVideoInitialized && _videoController.value.isInitialized
-                ? SizedBox.expand(
-                    child: FittedBox(
-                      fit: BoxFit.cover,
-                      child: SizedBox(
-                        width: _videoController.value.size.width,
-                        height: _videoController.value.size.height,
-                        child: VideoPlayer(_videoController),
-                      ),
-                    ),
-                  )
-                : Container(
-                    color: Colors.black,
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const CircularProgressIndicator(
-                            color: Colors.white,
-                          ),
-                          const SizedBox(height: 20),
-                          Text(
-                            'Loading video...',
-                            style: const TextStyle(
-                              color: Colors.white70,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-            // ⚡ FLASH
-            AnimatedOpacity(
-              opacity: _flash ? 1 : 0,
-              duration: const Duration(milliseconds: 300),
-              child: Container(color: Colors.white),
-            ),
-
-            // 👆 TAP TO START OVERLAY (for mobile autoplay restrictions)
-            if (_showTapToStart)
-              Container(
-                color: Colors.black.withOpacity(0.7),
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.play_circle_outline,
-                        color: Colors.white,
-                        size: 80,
-                      ),
-                      const SizedBox(height: 20),
-                      Text(
-                        _loadingTimedOut
-                            ? 'Tap to start video'
-                            : 'Loading video...\nTap if it doesn\'t start',
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      if (_loadingTimedOut) ...[
-                        const SizedBox(height: 10),
-                        const Text(
-                          '(Required by mobile browsers)',
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
+      body: Stack(
+        children: [
+          // Tap overlay only when video needs manual start
+          if (_showTapToStart)
+            Positioned.fill(
+              child: GestureDetector(
+                onTap: _tryPlayVideo,
+                behavior: HitTestBehavior.opaque,
+                child: Container(color: Colors.transparent),
               ),
-
-            // ⏰ TIME + 🌤️ WEATHER OVERLAY
-            Positioned(
-              top: 40,
-              left: 20,
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.45),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "${_now.hour.toString().padLeft(2, '0')}:${_now.minute.toString().padLeft(2, '0')}",
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 26,
-                        fontWeight: FontWeight.bold,
-                      ),
+            ),
+          // 🎥 VIDEO
+          _isVideoInitialized && _videoController.value.isInitialized
+              ? SizedBox.expand(
+                  child: FittedBox(
+                    fit: BoxFit.cover,
+                    child: SizedBox(
+                      width: _videoController.value.size.width,
+                      height: _videoController.value.size.height,
+                      child: VideoPlayer(_videoController),
                     ),
-                    Text(
-                      "${_now.day}/${_now.month}/${_now.year}",
-                      style: const TextStyle(color: Colors.white70),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      "Tangerang",
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
+                  ),
+                )
+              : Container(
+                  color: Colors.black,
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Image.asset(
-                          _weatherImage,
-                          width: 50,
-                          height: 50,
-                          errorBuilder: (context, error, stackTrace) {
-                            // Fallback to emoji if image doesn't load
-                            return const Text(
-                              '☀️',
-                              style: TextStyle(fontSize: 40),
-                            );
-                          },
+                        const CircularProgressIndicator(
+                          color: Colors.white,
                         ),
-                        const SizedBox(width: 10),
+                        const SizedBox(height: 20),
                         Text(
-                          "$_weatherText\n$_tempText",
-                          style: const TextStyle(color: Colors.white70),
+                          'Loading video...',
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 16,
+                          ),
                         ),
                       ],
                     ),
+                  ),
+                ),
+
+          // ⚡ FLASH
+          AnimatedOpacity(
+            opacity: _flash ? 1 : 0,
+            duration: const Duration(milliseconds: 300),
+            child: Container(color: Colors.white),
+          ),
+
+          // 👆 TAP TO START OVERLAY (for mobile autoplay restrictions)
+          if (_showTapToStart)
+            Container(
+              color: Colors.black.withOpacity(0.7),
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.play_circle_outline,
+                      color: Colors.white,
+                      size: 80,
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      _loadingTimedOut
+                          ? 'Tap to start video'
+                          : 'Loading video...\nTap if it doesn\'t start',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    if (_loadingTimedOut) ...[
+                      const SizedBox(height: 10),
+                      const Text(
+                        '(Required by mobile browsers)',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
             ),
 
-            // ▶️ START BUTTON
+          // ⏰ TIME + 🌤️ WEATHER OVERLAY
+          Positioned(
+            top: 40,
+            left: 20,
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.45),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "${_now.hour.toString().padLeft(2, '0')}:${_now.minute.toString().padLeft(2, '0')}",
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    "${_now.day}/${_now.month}/${_now.year}",
+                    style: const TextStyle(color: Colors.white70),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    "Tangerang",
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Image.asset(
+                        _weatherImage,
+                        width: 50,
+                        height: 50,
+                        errorBuilder: (context, error, stackTrace) {
+                          // Fallback to emoji if image doesn't load
+                          return const Text(
+                            '☀️',
+                            style: TextStyle(fontSize: 40),
+                          );
+                        },
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        "$_weatherText\n$_tempText",
+                        style: const TextStyle(color: Colors.white70),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // ▶️ START BUTTON
+          if (!_showTapToStart)
             Positioned(
               bottom: 80,
               left: 0,
               right: 0,
-              child: IgnorePointer(
-                ignoring: _showTapToStart,
-                child: Center(
-                  child: ElevatedButton(
-                    onPressed: _goNext,
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 48, vertical: 16),
-                      tapTargetSize: MaterialTapTargetSize.padded,
-                    ),
-                    child: const Text("Start"),
+              child: Center(
+                child: ElevatedButton(
+                  onPressed: _goNext,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 48, vertical: 16),
+                    tapTargetSize: MaterialTapTargetSize.padded,
+                    minimumSize: const Size(120, 50),
                   ),
+                  child: const Text("Start", style: TextStyle(fontSize: 18)),
                 ),
               ),
             ),
-          ],
-        ),
+        ],
       ),
     );
   }

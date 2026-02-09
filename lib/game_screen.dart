@@ -217,7 +217,16 @@ class _GameScreenState extends State<GameScreen> {
         backgroundColor: Colors.black,
         body: Stack(
           children: [
-            const HtmlElementView(viewType: viewType),
+            // Centered game container with 90% scale
+            Center(
+              child: Container(
+                constraints: BoxConstraints(
+                  maxWidth: size.width * 0.9,
+                  maxHeight: size.height * 0.9,
+                ),
+                child: const HtmlElementView(viewType: viewType),
+              ),
+            ),
             // Small return button (top-right corner, away from game controls)
             Positioned(
               top: 10,
@@ -260,22 +269,31 @@ class _GameScreenState extends State<GameScreen> {
         backgroundColor: Colors.black,
         body: Stack(
           children: [
-            InAppWebView(
-              initialUrlRequest: URLRequest(
-                url: WebUri('asset://assets/bunnyhop/web_1.2.1/index.html'),
+            // Centered game container with 90% scale
+            Center(
+              child: Container(
+                constraints: BoxConstraints(
+                  maxWidth: size.width * 0.9,
+                  maxHeight: size.height * 0.9,
+                ),
+                child: InAppWebView(
+                  initialUrlRequest: URLRequest(
+                    url: WebUri('asset://assets/bunnyhop/web_1.2.1/index.html'),
+                  ),
+                  initialSettings: InAppWebViewSettings(
+                    allowFileAccessFromFileURLs: true,
+                    allowUniversalAccessFromFileURLs: true,
+                    mediaPlaybackRequiresUserGesture: false,
+                    javaScriptEnabled: true,
+                  ),
+                  onWebViewCreated: (controller) {
+                    _webViewController = controller;
+                  },
+                  onLoadStop: (controller, url) async {
+                    debugPrint('Game loaded: $url');
+                  },
+                ),
               ),
-              initialSettings: InAppWebViewSettings(
-                allowFileAccessFromFileURLs: true,
-                allowUniversalAccessFromFileURLs: true,
-                mediaPlaybackRequiresUserGesture: false,
-                javaScriptEnabled: true,
-              ),
-              onWebViewCreated: (controller) {
-                _webViewController = controller;
-              },
-              onLoadStop: (controller, url) async {
-                debugPrint('Game loaded: $url');
-              },
             ),
             // Small return button (top-right corner, away from game controls)
             Positioned(
