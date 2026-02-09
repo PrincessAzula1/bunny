@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/services.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'dart:ui_web' as ui_web;
 import 'dart:html' as html;
@@ -21,11 +22,22 @@ class _GameScreenState extends State<GameScreen> {
   @override
   void initState() {
     super.initState();
+    // Lock to landscape orientation for better gameplay
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeRight,
+      DeviceOrientation.landscapeLeft,
+    ]);
     _stopMusic();
   }
 
   @override
   void dispose() {
+    // Restore portrait orientation when leaving game
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.landscapeRight,
+      DeviceOrientation.landscapeLeft,
+    ]);
     _resumeMusic();
     super.dispose();
   }

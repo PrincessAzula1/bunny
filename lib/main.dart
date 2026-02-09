@@ -590,9 +590,8 @@ class _BunnyScreenState extends State<BunnyScreen> {
   @override
   void initState() {
     super.initState();
-    // Allow flexible orientations - support both portrait and landscape
+    // Lock to landscape orientation for better mobile experience
     SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
       DeviceOrientation.landscapeRight,
       DeviceOrientation.landscapeLeft,
     ]);
@@ -620,7 +619,12 @@ class _BunnyScreenState extends State<BunnyScreen> {
       _voicePlayer.stop();
       _voicePlayer.release();
     } catch (_) {}
-    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+    // Restore normal orientation when leaving bunny screen
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.landscapeRight,
+      DeviceOrientation.landscapeLeft,
+    ]);
     super.dispose();
   }
 
