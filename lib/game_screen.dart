@@ -168,17 +168,40 @@ class _GameScreenState extends State<GameScreen> {
 
       return Scaffold(
         backgroundColor: Colors.black,
-        appBar: AppBar(
-          title: const Text('BunnyHop Game'),
-          backgroundColor: Colors.black,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-        ),
         body: Stack(
           children: [
             const HtmlElementView(viewType: viewType),
+            // Small return button (top-left corner)
+            Positioned(
+              top: 15,
+              left: 15,
+              child: Material(
+                color: Colors.white.withOpacity(0.9),
+                borderRadius: BorderRadius.circular(20),
+                elevation: 4,
+                child: InkWell(
+                  onTap: () => Navigator.of(context).pop(),
+                  borderRadius: BorderRadius.circular(20),
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    padding: const EdgeInsets.all(8),
+                    child: Image.asset(
+                      "assets/images/return.png",
+                      width: 24,
+                      height: 24,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Icon(
+                          Icons.arrow_back,
+                          color: Colors.black87,
+                          size: 24,
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ),
+            ),
             // Mobile touch controls overlay
             if (isMobile)
               Positioned(
@@ -219,14 +242,6 @@ class _GameScreenState extends State<GameScreen> {
       // For mobile platforms, use InAppWebView
       return Scaffold(
         backgroundColor: Colors.black,
-        appBar: AppBar(
-          title: const Text('BunnyHop Game'),
-          backgroundColor: Colors.black,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-        ),
         body: Stack(
           children: [
             InAppWebView(
@@ -242,6 +257,37 @@ class _GameScreenState extends State<GameScreen> {
               onWebViewCreated: (controller) {
                 _webViewController = controller;
               },
+            ),
+            // Small return button (top-left corner)
+            Positioned(
+              top: 15,
+              left: 15,
+              child: Material(
+                color: Colors.white.withOpacity(0.9),
+                borderRadius: BorderRadius.circular(20),
+                elevation: 4,
+                child: InkWell(
+                  onTap: () => Navigator.of(context).pop(),
+                  borderRadius: BorderRadius.circular(20),
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    padding: const EdgeInsets.all(8),
+                    child: Image.asset(
+                      "assets/images/return.png",
+                      width: 24,
+                      height: 24,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Icon(
+                          Icons.arrow_back,
+                          color: Colors.black87,
+                          size: 24,
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ),
             ),
             // Mobile touch controls overlay
             Positioned(
