@@ -37,11 +37,13 @@ class StartVideoScreen extends StatefulWidget {
   State<StartVideoScreen> createState() => _StartVideoScreenState();
 }
 
-class _StartVideoScreenState extends State<StartVideoScreen> {
+class _StartVideoScreenState extends State<StartVideoScreen>
+    with WidgetsBindingObserver {
   late VideoPlayerController _videoController;
   late AudioPlayer _musicPlayer;
 
   bool _flash = false;
+  bool _isVideoInitialized = false;
 
   // ⏰ TIME
   late Timer _clockTimer;
@@ -56,13 +58,8 @@ class _StartVideoScreenState extends State<StartVideoScreen> {
   void initState() {
     super.initState();
 
-    _videoController =
-        VideoPlayerController.asset('assets/videos/start_menu.mp4')
-          ..initialize().then((_) {
-            _videoController.setLooping(true);
-            _videoController.play();
-            setState(() {});
-          });
+    WidgetsBinding.instance.addObserver(this);
+    _initializeVideo();
 
     _musicPlayer = widget.musicPlayer ?? AudioPlayer();
     _musicPlayer.setVolume(1.0);
@@ -73,6 +70,70 @@ class _StartVideoScreenState extends State<StartVideoScreen> {
 
     _startClock();
     _fetchWeather();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.resumed) {
+      // Resume video playback when app comes back to foreground
+      if (_isVideoInitialized && !_videoController.value.isPlaying) {
+        _videoController.play();
+      }
+    } else if (state == AppLifecycleState.paused) {
+      // Pause video when app goes to background
+      if (_isVideoInitialized && _videoController.value.isPlaying) {
+        _videoController.pause();
+      }
+    }
+  }
+
+  Future<void> _initializeVideo() async {
+    _videoController =
+        VideoPlayerController.asset('assets/videos/start_menu.mp4');
+
+    // Add listener to handle video errors
+    _videoController.addListener(() {
+      if (_videoController.value.hasError) {
+        debugPrint('Video error: ${_videoController.value.errorDescription}');
+      }
+    });
+
+    try {
+      await _videoController.initialize();
+      if (mounted) {
+        await _videoController.setLooping(true);
+        // Set volume to ensure it's not muted
+        await _videoController.setVolume(1.0);
+        await _videoController.play();
+        setState(() {
+          _isVideoInitialized = true;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error initializing video: $e');
+      // Retry once after a short delay if initialization fails
+      await Future.delayed(const Duration(milliseconds: 500));
+      try {
+        await _videoController.initialize();
+        if (mounted) {
+          await _videoController.setLooping(true);
+          await _videoController.setVolume(1.0);
+          await _videoController.play();
+          setState(() {
+            _isVideoInitialized = true;
+          });
+        }
+      } catch (e) {
+        debugPrint('Video initialization failed after retry: $e');
+        // Still mark as initialized to show the screen even if video fails
+        if (mounted) {
+          setState(() {
+            _isVideoInitialized = true;
+          });
+        }
+      }
+    }
   }
 
   // ⏰ LIVE CLOCK
@@ -165,6 +226,7 @@ class _StartVideoScreenState extends State<StartVideoScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _videoController.dispose();
     _clockTimer.cancel();
     super.dispose();
@@ -176,7 +238,7 @@ class _StartVideoScreenState extends State<StartVideoScreen> {
       body: Stack(
         children: [
           // 🎥 VIDEO
-          _videoController.value.isInitialized
+          _isVideoInitialized && _videoController.value.isInitialized
               ? SizedBox.expand(
                   child: FittedBox(
                     fit: BoxFit.cover,
@@ -187,7 +249,14 @@ class _StartVideoScreenState extends State<StartVideoScreen> {
                     ),
                   ),
                 )
-              : const Center(child: CircularProgressIndicator()),
+              : Container(
+                  color: Colors.black,
+                  child: const Center(
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
 
           // ⚡ FLASH
           AnimatedOpacity(
