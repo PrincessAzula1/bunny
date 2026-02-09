@@ -24,7 +24,7 @@ const RESOURCES = {"flutter.js": "4b2350e14c6650ba82871f60906437ea",
 "assets/assets/images/rain.png": "87a5d91202809f7fae7bc7d65b0353d0",
 "assets/assets/images/sunny_with_rain.png": "43817ac478226bc2a145c5023a0d0033",
 "assets/assets/images/return.png": "e468eeca6b1e7f6568a431605ec1c68c",
-"assets/assets/bunnyhop/web_1.2.1/index.html": "be97fba4de39f5e0b1c176b5c224400a",
+"assets/assets/bunnyhop/web_1.2.1/index.html": "072a90766980125c0556cd861e5e1a15",
 "assets/assets/bunnyhop/web_1.2.1/Build/web_1.2.1.asm.code.unityweb": "b9e2225f932aa47bdd509b5d7a9a1080",
 "assets/assets/bunnyhop/web_1.2.1/Build/web_1.2.1.asm.memory.unityweb": "33ff52a3fa41bd6e3ae8c2b82b0cdca0",
 "assets/assets/bunnyhop/web_1.2.1/Build/web_1.2.1.json": "4806ddac22567443bae070821c1004ac",
@@ -66,9 +66,9 @@ const RESOURCES = {"flutter.js": "4b2350e14c6650ba82871f60906437ea",
 "canvaskit/canvaskit.js.symbols": "efc2cd87d1ff6c586b7d4c7083063a40",
 "canvaskit/skwasm.js.symbols": "96263e00e3c9bd9cd878ead867c04f3c",
 "favicon.png": "5dcef449791fa27946b3d35ad8803796",
-"flutter_bootstrap.js": "fddeb743dfca15725988c938ebdcbbf0",
+"flutter_bootstrap.js": "fb9e1bc90f465e2f6f5e3248f2d8cde8",
 "version.json": "28bfa0c2351f3fd746c58e9e0342ca97",
-"main.dart.js": "f108b4dfccbcbcea0f79d0fef0fe0f12"};
+"main.dart.js": "e53cd1bcd5f2d3c2214f16e2b40d3ff0"};
 // The application shell files that are downloaded before a service worker can
 // start.
 const CORE = ["main.dart.js",
