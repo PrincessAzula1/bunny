@@ -208,18 +208,11 @@ class _StartVideoScreenState extends State<StartVideoScreen>
         'Controller value initialized: ${_videoController.value.isInitialized}');
 
     try {
-      // If not initialized yet, try to initialize first
-      if (!_videoController.value.isInitialized) {
-        debugPrint('Initializing video on tap...');
-        await _videoController.initialize();
-        await _videoController.setLooping(true);
-        await _videoController.setVolume(1.0);
-        setState(() {
-          _isVideoInitialized = true;
-        });
-      }
+      // Reset video position and try to play - this helps reset the controller state
+      debugPrint('Resetting video position...');
+      await _videoController.seekTo(Duration.zero);
+      await Future.delayed(const Duration(milliseconds: 100));
 
-      // Now try to play
       debugPrint('Playing video...');
       await _videoController.play();
 
@@ -233,7 +226,21 @@ class _StartVideoScreenState extends State<StartVideoScreen>
           });
         }
       } else {
-        debugPrint('Video failed to play after tap');
+        debugPrint(
+            'Video failed to play after tap - retrying with longer delay');
+        // Try one more time with reset
+        await _videoController.seekTo(Duration.zero);
+        await Future.delayed(const Duration(milliseconds: 150));
+        await _videoController.play();
+        await Future.delayed(const Duration(milliseconds: 300));
+        if (mounted && _videoController.value.isPlaying) {
+          debugPrint('Video playing after second attempt!');
+          setState(() {
+            _showTapToStart = false;
+          });
+        } else {
+          debugPrint('Video still not playing - may need another tap');
+        }
       }
     } catch (e) {
       debugPrint('Error playing video: $e');
