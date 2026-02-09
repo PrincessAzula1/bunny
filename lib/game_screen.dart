@@ -220,21 +220,6 @@ class _GameScreenState extends State<GameScreen> {
         body: Stack(
           children: [
             const HtmlElementView(viewType: viewType),
-            // Full screen touch area for jumping (invisible)
-            if (isMobile)
-              Positioned.fill(
-                child: GestureDetector(
-                  behavior: HitTestBehavior.translucent,
-                  onTapDown: (_) => _simulateJumpPress(),
-                  onTapUp: (_) => _simulateJumpRelease(),
-                  onTapCancel: () => _simulateJumpRelease(),
-                  onLongPressStart: (_) => _simulateJumpPress(),
-                  onLongPressEnd: (_) => _simulateJumpRelease(),
-                  child: Container(
-                    color: Colors.transparent,
-                  ),
-                ),
-              ),
             // Small return button (top-right corner, away from game controls)
             Positioned(
               top: 10,
@@ -290,20 +275,9 @@ class _GameScreenState extends State<GameScreen> {
               onWebViewCreated: (controller) {
                 _webViewController = controller;
               },
-            ),
-            // Full screen touch area for jumping (invisible)
-            Positioned.fill(
-              child: GestureDetector(
-                behavior: HitTestBehavior.translucent,
-                onTapDown: (_) => _simulateJumpPress(),
-                onTapUp: (_) => _simulateJumpRelease(),
-                onTapCancel: () => _simulateJumpRelease(),
-                onLongPressStart: (_) => _simulateJumpPress(),
-                onLongPressEnd: (_) => _simulateJumpRelease(),
-                child: Container(
-                  color: Colors.transparent,
-                ),
-              ),
+              onLoadStop: (controller, url) async {
+                debugPrint('Game loaded: $url');
+              },
             ),
             // Small return button (top-right corner, away from game controls)
             Positioned(
