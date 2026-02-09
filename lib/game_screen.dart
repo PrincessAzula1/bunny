@@ -202,9 +202,7 @@ class _GameScreenState extends State<GameScreen> {
               ..style.border = 'none'
               ..style.width = '100%'
               ..style.height = '100%'
-              ..style.transform = 'scale(0.85)'
-              ..style.transformOrigin = 'top left'
-              ..style.pointerEvents = 'auto'
+              ..style.overflow = 'hidden'
               ..setAttribute('allow', 'autoplay')
               ..setAttribute('allowfullscreen', 'true');
             return _iframe!;

@@ -350,6 +350,7 @@ class _StartVideoScreenState extends State<StartVideoScreen>
     return Scaffold(
       body: GestureDetector(
         onTap: _showTapToStart ? _tryPlayVideo : null,
+        behavior: HitTestBehavior.translucent,
         child: Stack(
           children: [
             // 🎥 VIDEO
@@ -498,10 +499,18 @@ class _StartVideoScreenState extends State<StartVideoScreen>
               bottom: 80,
               left: 0,
               right: 0,
-              child: Center(
-                child: ElevatedButton(
-                  onPressed: _goNext,
-                  child: const Text("Start"),
+              child: IgnorePointer(
+                ignoring: _showTapToStart,
+                child: Center(
+                  child: ElevatedButton(
+                    onPressed: _goNext,
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 48, vertical: 16),
+                      tapTargetSize: MaterialTapTargetSize.padded,
+                    ),
+                    child: const Text("Start"),
+                  ),
                 ),
               ),
             ),
@@ -851,6 +860,7 @@ class _BunnyScreenState extends State<BunnyScreen> {
                                   padding: EdgeInsets.symmetric(
                                     vertical: isMobileLandscape ? 8 : 12,
                                   ),
+                                  tapTargetSize: MaterialTapTargetSize.padded,
                                 ),
                                 child: Text(
                                   "Next",
@@ -880,6 +890,7 @@ class _BunnyScreenState extends State<BunnyScreen> {
                                   padding: EdgeInsets.symmetric(
                                     vertical: isMobileLandscape ? 8 : 12,
                                   ),
+                                  tapTargetSize: MaterialTapTargetSize.padded,
                                 ),
                                 child: Text(
                                   "Play BunnyHop",
@@ -901,6 +912,7 @@ class _BunnyScreenState extends State<BunnyScreen> {
                                   padding: EdgeInsets.symmetric(
                                     vertical: isMobileLandscape ? 8 : 12,
                                   ),
+                                  tapTargetSize: MaterialTapTargetSize.padded,
                                 ),
                                 child: Text(
                                   "Next",
@@ -929,6 +941,7 @@ class _BunnyScreenState extends State<BunnyScreen> {
                                   padding: EdgeInsets.symmetric(
                                     vertical: isMobileLandscape ? 8 : 12,
                                   ),
+                                  tapTargetSize: MaterialTapTargetSize.padded,
                                 ),
                                 child: Text(
                                   "Play BunnyHop",

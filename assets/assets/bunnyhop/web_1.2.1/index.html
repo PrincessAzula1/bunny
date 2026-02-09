@@ -3,6 +3,9 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <title>Unity WebGL Player | BunnyHop</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
     <link rel="stylesheet" href="TemplateData/style.css">
@@ -10,11 +13,122 @@
     <script src="Build/UnityLoader.js"></script>
     <script>
       var unityInstance = UnityLoader.instantiate("unityContainer", "Build/web_1.2.1.json", {onProgress: UnityProgress});
+      
+      // Touch controls for mobile - inject jump handlers on the Unity canvas
+      window.addEventListener('load', function() {
+        // Wait a bit for Unity to create its canvas
+        setTimeout(function() {
+          var canvas = document.querySelector('#unityContainer canvas');
+          var container = document.querySelector('#unityContainer');
+          var target = canvas || container || document;
+          
+          if (!canvas) {
+            console.warn('Unity canvas not found, using container');
+          }
+          
+          var isJumping = false;
+          
+          function triggerJump(e) {
+            if (!isJumping) {
+              isJumping = true;
+              console.log('Jump triggered');
+              
+              // Dispatch Space key event to the canvas
+              var spaceDown = new KeyboardEvent('keydown', {
+                key: ' ',
+                code: 'Space',
+                keyCode: 32,
+                which: 32,
+                bubbles: true,
+                cancelable: true
+              });
+              target.dispatchEvent(spaceDown);
+              
+              // Also dispatch to window in case Unity listens there
+              window.dispatchEvent(spaceDown);
+              
+              // Try right mouse button as well
+              var mouseDown = new MouseEvent('mousedown', {
+                button: 2,
+                buttons: 2,
+                bubbles: true,
+                cancelable: true,
+                clientX: e.touches ? e.touches[0].clientX : e.clientX,
+                clientY: e.touches ? e.touches[0].clientY : e.clientY
+              });
+              target.dispatchEvent(mouseDown);
+            }
+          }
+          
+          function releaseJump() {
+            if (isJumping) {
+              isJumping = false;
+              console.log('Jump released');
+              
+              var spaceUp = new KeyboardEvent('keyup', {
+                key: ' ',
+                code: 'Space',
+                keyCode: 32,
+                which: 32,
+                bubbles: true,
+                cancelable: true
+              });
+              target.dispatchEvent(spaceUp);
+              window.dispatchEvent(spaceUp);
+              
+              var mouseUp = new MouseEvent('mouseup', {
+                button: 2,
+                buttons: 0,
+                bubbles: true,
+                cancelable: true
+              });
+              target.dispatchEvent(mouseUp);
+            }
+          }
+          
+          // Add touch event listeners to the entire document for full-screen touch
+          document.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            triggerJump(e);
+          }, { passive: false });
+          
+          document.addEventListener('touchend', function(e) {
+            e.preventDefault();
+            releaseJump();
+          }, { passive: false });
+          
+          // Also add to canvas/container specifically
+          target.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            triggerJump(e);
+          }, { passive: false });
+          
+          target.addEventListener('touchend', function(e) {
+            e.preventDefault();
+            releaseJump();
+          }, { passive: false });
+          
+          // Mouse events for desktop testing
+          document.addEventListener('mousedown', function(e) {
+            if (e.button === 0) { // Left click
+              triggerJump(e);
+            }
+          });
+          
+          document.addEventListener('mouseup', function(e) {
+            if (e.button === 0) {
+              releaseJump();
+            }
+          });
+          
+          console.log('Mobile touch controls initialized for Unity canvas');
+        }, 2000); // Wait 2 seconds for Unity to fully initialize
+      });
     </script>
   </head>
   <body>
     <div class="webgl-content">
-      <div id="unityContainer" style="width: 800px; height: 600px"></div>
+      <div id="unityContainer" style="width: 100%; height: 100%; max-width: 100vw; max-height: 100vh;"></div>
       <div class="footer">
         <div class="webgl-logo"></div>
         <div class="fullscreen" onclick="unityInstance.SetFullscreen(1)"></div>
