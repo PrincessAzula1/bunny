@@ -98,13 +98,9 @@ class _GameScreenState extends State<GameScreen> {
         ui_web.platformViewRegistry.registerViewFactory(
           viewType,
           (int viewId) {
-            // Get the current base URL to handle GitHub Pages deployment
-            final baseUrl = html.window.location.origin ?? '';
-            final basePath = html.document.baseUri ?? '';
-            // Construct the full path for the Unity game
-            final gamePath = basePath.endsWith('/')
-                ? '${basePath}assets/bunnyhop/web_1.2.1/index.html'
-                : '$basePath/assets/bunnyhop/web_1.2.1/index.html';
+            // For web, use the assets path where Flutter places them
+            // In the build output, assets are at: assets/assets/...
+            const gamePath = 'assets/assets/bunnyhop/web_1.2.1/index.html';
 
             debugPrint('Loading Unity game from: $gamePath');
 
