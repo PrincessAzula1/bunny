@@ -130,14 +130,14 @@ class _StartVideoScreenState extends State<StartVideoScreen>
         await _videoController.setLooping(true);
         // Set volume to ensure it's not muted
         await _videoController.setVolume(1.0);
-        
+
         setState(() {
           _isVideoInitialized = true;
         });
-        
+
         // Try to play (may fail on mobile without user interaction)
         await _videoController.play();
-        
+
         // Check if actually playing after a short delay
         await Future.delayed(const Duration(milliseconds: 500));
         if (mounted && !_videoController.value.isPlaying) {
@@ -159,7 +159,7 @@ class _StartVideoScreenState extends State<StartVideoScreen>
             _isVideoInitialized = true;
           });
           await _videoController.play();
-          
+
           // Check if actually playing after a short delay
           await Future.delayed(const Duration(milliseconds: 500));
           if (mounted && !_videoController.value.isPlaying) {
@@ -353,7 +353,7 @@ class _StartVideoScreenState extends State<StartVideoScreen>
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                      if (_loadingTimedOut) ..[
+                      if (_loadingTimedOut) ...[
                         const SizedBox(height: 10),
                         const Text(
                           '(Required by mobile browsers)',
