@@ -33,9 +33,9 @@ flutter:
     - assets/videos/
     - assets/audio/
     - assets/images/
-    - assets/assets/bunnyhop/web_1.2.1/
-    - assets/assets/bunnyhop/web_1.2.1/Build/
-    - assets/assets/bunnyhop/web_1.2.1/TemplateData/
+    - assets/bunnyhop/web_1.2.1/
+    - assets/bunnyhop/web_1.2.1/Build/
+    - assets/bunnyhop/web_1.2.1/TemplateData/
 
   fonts:
     - family: Bokutoh

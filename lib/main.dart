@@ -287,11 +287,11 @@ class _StartVideoScreenState extends State<StartVideoScreen>
       return "assets/images/thunderstorm.png";
     } else if (condition.contains("rain")) {
       if (condition.contains("sunny") || condition.contains("clear")) {
-        return "assets/images/sunny with rain.png";
+        return "assets/images/sunny_with_rain.png";
       }
       return "assets/images/rain.png";
     } else if (condition.contains("cloud")) {
-      return "assets/images/sunny with clouds.png";
+      return "assets/images/sunny_with_clouds.png";
     } else if (condition.contains("sunny") || condition.contains("clear")) {
       return "assets/images/sunny.png";
     } else if (condition.contains("cloudy")) {
@@ -471,10 +471,17 @@ class _StartVideoScreenState extends State<StartVideoScreen>
                           _weatherImage,
                           width: 50,
                           height: 50,
+                          errorBuilder: (context, error, stackTrace) {
+                            // Fallback to emoji if image doesn't load
+                            return const Text(
+                              '☀️',
+                              style: TextStyle(fontSize: 40),
+                            );
+                          },
                         ),
                         const SizedBox(width: 10),
                         Text(
-                          "$_weatherText\\n$_tempText",
+                          "$_weatherText\n$_tempText",
                           style: const TextStyle(color: Colors.white70),
                         ),
                       ],
@@ -653,19 +660,52 @@ class _BunnyScreenState extends State<BunnyScreen> {
             child: Image.asset(
               "assets/images/bunny.webp",
               fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                // Fallback to a colored background if image doesn't load
+                debugPrint('Error loading bunny.webp: $error');
+                return Container(
+                  color: const Color(0xFFFFF0F5), // Light pink background
+                  child: Center(
+                    child: Text(
+                      '🐰',
+                      style: TextStyle(fontSize: 100),
+                    ),
+                  ),
+                );
+              },
             ),
           ),
 
-          // ↩️ Return Button (Top Right)
+          // ↩️ Return Button (Top Right) - Using Icon as fallback
           Positioned(
             top: 20,
             right: 20,
-            child: GestureDetector(
-              onTap: _returnToHome,
-              child: Image.asset(
-                "assets/images/return.png",
-                width: returnButtonSize,
-                height: returnButtonSize,
+            child: Material(
+              color: Colors.white.withOpacity(0.9),
+              borderRadius: BorderRadius.circular(25),
+              elevation: 4,
+              child: InkWell(
+                onTap: _returnToHome,
+                borderRadius: BorderRadius.circular(25),
+                child: Container(
+                  width: returnButtonSize,
+                  height: returnButtonSize,
+                  padding: const EdgeInsets.all(8),
+                  child: Image.asset(
+                    "assets/images/return.png",
+                    width: returnButtonSize - 16,
+                    height: returnButtonSize - 16,
+                    errorBuilder: (context, error, stackTrace) {
+                      // Fallback to icon if image doesn't load
+                      debugPrint('Error loading return.png: $error');
+                      return Icon(
+                        Icons.arrow_back,
+                        color: Colors.black87,
+                        size: returnButtonSize - 16,
+                      );
+                    },
+                  ),
+                ),
               ),
             ),
           ),
@@ -682,6 +722,27 @@ class _BunnyScreenState extends State<BunnyScreen> {
                   Image.asset(
                     "assets/images/Bubble.png",
                     width: bubbleWidth,
+                    errorBuilder: (context, error, stackTrace) {
+                      // Fallback to a container with border if image doesn't load
+                      debugPrint('Error loading Bubble.png: $error');
+                      return Container(
+                        width: bubbleWidth,
+                        height: bubbleWidth * 0.4,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.95),
+                          borderRadius: BorderRadius.circular(20),
+                          border:
+                              Border.all(color: Colors.pink.shade200, width: 2),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black26,
+                              blurRadius: 10,
+                              offset: Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
                   ),
                   Padding(
                     padding: EdgeInsets.symmetric(
@@ -699,6 +760,8 @@ class _BunnyScreenState extends State<BunnyScreen> {
                           fontFamily: 'Bokutoh',
                           fontSize: fontSize,
                           color: Colors.black,
+                          // Fallback if font doesn't load
+                          fontFamilyFallback: const ['Arial', 'sans-serif'],
                         ),
                       ),
                     ),

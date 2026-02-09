@@ -99,7 +99,7 @@ class _GameScreenState extends State<GameScreen> {
           viewType,
           (int viewId) {
             _iframe = html.IFrameElement()
-              ..src = 'assets/assets/bunnyhop/web_1.2.1/index.html'
+              ..src = 'assets/bunnyhop/web_1.2.1/index.html'
               ..style.border = 'none'
               ..style.width = '100%'
               ..style.height = '100%'
@@ -176,8 +176,7 @@ class _GameScreenState extends State<GameScreen> {
           children: [
             InAppWebView(
               initialUrlRequest: URLRequest(
-                url: WebUri(
-                    'asset://assets/assets/bunnyhop/web_1.2.1/index.html'),
+                url: WebUri('asset://assets/bunnyhop/web_1.2.1/index.html'),
               ),
               initialSettings: InAppWebViewSettings(
                 allowFileAccessFromFileURLs: true,
