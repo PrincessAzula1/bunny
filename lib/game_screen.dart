@@ -5,6 +5,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'dart:ui_web' as ui_web;
 import 'dart:html' as html;
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'dart:js' as js;
 
 class GameScreen extends StatefulWidget {
   final AudioPlayer musicPlayer;
@@ -23,21 +24,48 @@ class _GameScreenState extends State<GameScreen> {
   void initState() {
     super.initState();
     // Lock to landscape orientation for better gameplay
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.landscapeRight,
-      DeviceOrientation.landscapeLeft,
-    ]);
+    _lockLandscape();
     _stopMusic();
+  }
+
+  void _lockLandscape() {
+    if (kIsWeb) {
+      // For web browsers, use Screen Orientation API
+      try {
+        js.context.callMethod(
+            'eval', ['screen.orientation.lock("landscape").catch(() => {})']);
+      } catch (e) {
+        debugPrint('Web orientation lock failed: $e');
+      }
+    } else {
+      // For native mobile apps
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.landscapeRight,
+        DeviceOrientation.landscapeLeft,
+      ]);
+    }
+  }
+
+  void _unlockOrientation() {
+    if (kIsWeb) {
+      try {
+        js.context.callMethod('eval', ['screen.orientation.unlock()']);
+      } catch (e) {
+        debugPrint('Web orientation unlock failed: $e');
+      }
+    } else {
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.landscapeRight,
+        DeviceOrientation.landscapeLeft,
+      ]);
+    }
   }
 
   @override
   void dispose() {
     // Restore portrait orientation when leaving game
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.landscapeRight,
-      DeviceOrientation.landscapeLeft,
-    ]);
+    _unlockOrientation();
     _resumeMusic();
     super.dispose();
   }

@@ -2,11 +2,13 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:http/http.dart' as http;
 import 'game_screen.dart';
+import 'dart:js' as js;
 
 void main() {
   runApp(const MyApp());
@@ -591,14 +593,45 @@ class _BunnyScreenState extends State<BunnyScreen> {
   void initState() {
     super.initState();
     // Lock to landscape orientation for better mobile experience
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.landscapeRight,
-      DeviceOrientation.landscapeLeft,
-    ]);
+    _lockLandscape();
 
     // Resume looping music if it's not playing
     _resetMusicPlayer();
     _startTyping();
+  }
+
+  void _lockLandscape() {
+    if (kIsWeb) {
+      // For web browsers, use Screen Orientation API
+      try {
+        js.context.callMethod(
+            'eval', ['screen.orientation.lock("landscape").catch(() => {})']);
+      } catch (e) {
+        debugPrint('Web orientation lock failed: $e');
+      }
+    } else {
+      // For native mobile apps
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.landscapeRight,
+        DeviceOrientation.landscapeLeft,
+      ]);
+    }
+  }
+
+  void _unlockOrientation() {
+    if (kIsWeb) {
+      try {
+        js.context.callMethod('eval', ['screen.orientation.unlock()']);
+      } catch (e) {
+        debugPrint('Web orientation unlock failed: $e');
+      }
+    } else {
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.landscapeRight,
+        DeviceOrientation.landscapeLeft,
+      ]);
+    }
   }
 
   Future<void> _resetMusicPlayer() async {
@@ -620,11 +653,7 @@ class _BunnyScreenState extends State<BunnyScreen> {
       _voicePlayer.release();
     } catch (_) {}
     // Restore normal orientation when leaving bunny screen
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.landscapeRight,
-      DeviceOrientation.landscapeLeft,
-    ]);
+    _unlockOrientation();
     super.dispose();
   }
 
