@@ -44,6 +44,8 @@ class _StartVideoScreenState extends State<StartVideoScreen>
 
   bool _flash = false;
   bool _isVideoInitialized = false;
+  bool _showTapToStart = false;
+  bool _loadingTimedOut = false;
 
   // ⏰ TIME
   late Timer _clockTimer;
@@ -92,10 +94,33 @@ class _StartVideoScreenState extends State<StartVideoScreen>
     _videoController =
         VideoPlayerController.asset('assets/videos/start_menu.mp4');
 
-    // Add listener to handle video errors
+    // Add listener to handle video errors and playing state
     _videoController.addListener(() {
       if (_videoController.value.hasError) {
         debugPrint('Video error: ${_videoController.value.errorDescription}');
+        if (mounted) {
+          setState(() {
+            _showTapToStart = true;
+          });
+        }
+      }
+      // Check if video is playing and update state
+      if (_videoController.value.isPlaying && _showTapToStart) {
+        if (mounted) {
+          setState(() {
+            _showTapToStart = false;
+          });
+        }
+      }
+    });
+
+    // Set a timeout to show tap-to-start if video takes too long
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted && !_videoController.value.isPlaying) {
+        setState(() {
+          _showTapToStart = true;
+          _loadingTimedOut = true;
+        });
       }
     });
 
@@ -105,10 +130,21 @@ class _StartVideoScreenState extends State<StartVideoScreen>
         await _videoController.setLooping(true);
         // Set volume to ensure it's not muted
         await _videoController.setVolume(1.0);
-        await _videoController.play();
+        
         setState(() {
           _isVideoInitialized = true;
         });
+        
+        // Try to play (may fail on mobile without user interaction)
+        await _videoController.play();
+        
+        // Check if actually playing after a short delay
+        await Future.delayed(const Duration(milliseconds: 500));
+        if (mounted && !_videoController.value.isPlaying) {
+          setState(() {
+            _showTapToStart = true;
+          });
+        }
       }
     } catch (e) {
       debugPrint('Error initializing video: $e');
@@ -119,10 +155,18 @@ class _StartVideoScreenState extends State<StartVideoScreen>
         if (mounted) {
           await _videoController.setLooping(true);
           await _videoController.setVolume(1.0);
-          await _videoController.play();
           setState(() {
             _isVideoInitialized = true;
           });
+          await _videoController.play();
+          
+          // Check if actually playing after a short delay
+          await Future.delayed(const Duration(milliseconds: 500));
+          if (mounted && !_videoController.value.isPlaying) {
+            setState(() {
+              _showTapToStart = true;
+            });
+          }
         }
       } catch (e) {
         debugPrint('Video initialization failed after retry: $e');
@@ -130,9 +174,26 @@ class _StartVideoScreenState extends State<StartVideoScreen>
         if (mounted) {
           setState(() {
             _isVideoInitialized = true;
+            _showTapToStart = true;
           });
         }
       }
+    }
+  }
+
+  // Manual play trigger for mobile devices
+  Future<void> _tryPlayVideo() async {
+    try {
+      if (_isVideoInitialized) {
+        await _videoController.play();
+        if (mounted) {
+          setState(() {
+            _showTapToStart = false;
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('Error playing video: $e');
     }
   }
 
@@ -235,102 +296,145 @@ class _StartVideoScreenState extends State<StartVideoScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          // 🎥 VIDEO
-          _isVideoInitialized && _videoController.value.isInitialized
-              ? SizedBox.expand(
-                  child: FittedBox(
-                    fit: BoxFit.cover,
-                    child: SizedBox(
-                      width: _videoController.value.size.width,
-                      height: _videoController.value.size.height,
-                      child: VideoPlayer(_videoController),
+      body: GestureDetector(
+        onTap: _showTapToStart ? _tryPlayVideo : null,
+        child: Stack(
+          children: [
+            // 🎥 VIDEO
+            _isVideoInitialized && _videoController.value.isInitialized
+                ? SizedBox.expand(
+                    child: FittedBox(
+                      fit: BoxFit.cover,
+                      child: SizedBox(
+                        width: _videoController.value.size.width,
+                        height: _videoController.value.size.height,
+                        child: VideoPlayer(_videoController),
+                      ),
+                    ),
+                  )
+                : Container(
+                    color: Colors.black,
+                    child: const Center(
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                      ),
                     ),
                   ),
-                )
-              : Container(
-                  color: Colors.black,
-                  child: const Center(
-                    child: CircularProgressIndicator(
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
 
-          // ⚡ FLASH
-          AnimatedOpacity(
-            opacity: _flash ? 1 : 0,
-            duration: const Duration(milliseconds: 300),
-            child: Container(color: Colors.white),
-          ),
+            // ⚡ FLASH
+            AnimatedOpacity(
+              opacity: _flash ? 1 : 0,
+              duration: const Duration(milliseconds: 300),
+              child: Container(color: Colors.white),
+            ),
 
-          // ⏰ TIME + 🌤️ WEATHER OVERLAY
-          Positioned(
-            top: 40,
-            left: 20,
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.45),
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "${_now.hour.toString().padLeft(2, '0')}:${_now.minute.toString().padLeft(2, '0')}",
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 26,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    "${_now.day}/${_now.month}/${_now.year}",
-                    style: const TextStyle(color: Colors.white70),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    "Tangerang",
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
+            // 👆 TAP TO START OVERLAY (for mobile autoplay restrictions)
+            if (_showTapToStart)
+              Container(
+                color: Colors.black.withOpacity(0.7),
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Image.asset(
-                        _weatherImage,
-                        width: 50,
-                        height: 50,
+                      const Icon(
+                        Icons.play_circle_outline,
+                        color: Colors.white,
+                        size: 80,
                       ),
-                      const SizedBox(width: 10),
+                      const SizedBox(height: 20),
                       Text(
-                        "$_weatherText\n$_tempText",
-                        style: const TextStyle(color: Colors.white70),
+                        _loadingTimedOut
+                            ? 'Tap to start video'
+                            : 'Loading video...\nTap if it doesn\'t start',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
+                      if (_loadingTimedOut) ..[
+                        const SizedBox(height: 10),
+                        const Text(
+                          '(Required by mobile browsers)',
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
                     ],
                   ),
-                ],
+                ),
               ),
-            ),
-          ),
 
-          // ▶️ START BUTTON
-          Positioned(
-            bottom: 80,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: ElevatedButton(
-                onPressed: _goNext,
-                child: const Text("Start"),
+            // ⏰ TIME + 🌤️ WEATHER OVERLAY
+            Positioned(
+              top: 40,
+              left: 20,
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.45),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "${_now.hour.toString().padLeft(2, '0')}:${_now.minute.toString().padLeft(2, '0')}",
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      "${_now.day}/${_now.month}/${_now.year}",
+                      style: const TextStyle(color: Colors.white70),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      "Tangerang",
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Image.asset(
+                          _weatherImage,
+                          width: 50,
+                          height: 50,
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          "$_weatherText\\n$_tempText",
+                          style: const TextStyle(color: Colors.white70),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+
+            // ▶️ START BUTTON
+            Positioned(
+              bottom: 80,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: ElevatedButton(
+                  onPressed: _goNext,
+                  child: const Text("Start"),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
