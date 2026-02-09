@@ -217,14 +217,26 @@ class _GameScreenState extends State<GameScreen> {
         backgroundColor: Colors.black,
         body: Stack(
           children: [
-            // Centered game container with 90% scale
+            // Centered game container with proper aspect ratio
             Center(
               child: Container(
+                padding: const EdgeInsets.all(20),
                 constraints: BoxConstraints(
-                  maxWidth: size.width * 0.9,
-                  maxHeight: size.height * 0.9,
+                  maxWidth: size.width * 0.95,
+                  maxHeight: size.height * 0.95,
                 ),
-                child: const HtmlElementView(viewType: viewType),
+                child: AspectRatio(
+                  aspectRatio: 800 / 600, // Unity game native aspect ratio
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                          color: Colors.grey.withOpacity(0.3), width: 1),
+                    ),
+                    child: const ClipRect(
+                      child: HtmlElementView(viewType: viewType),
+                    ),
+                  ),
+                ),
               ),
             ),
             // Small return button (top-right corner, away from game controls)
@@ -269,29 +281,40 @@ class _GameScreenState extends State<GameScreen> {
         backgroundColor: Colors.black,
         body: Stack(
           children: [
-            // Centered game container with 90% scale
+            // Centered game container with proper aspect ratio
             Center(
               child: Container(
+                padding: const EdgeInsets.all(20),
                 constraints: BoxConstraints(
-                  maxWidth: size.width * 0.9,
-                  maxHeight: size.height * 0.9,
+                  maxWidth: size.width * 0.95,
+                  maxHeight: size.height * 0.95,
                 ),
-                child: InAppWebView(
-                  initialUrlRequest: URLRequest(
-                    url: WebUri('asset://assets/bunnyhop/web_1.2.1/index.html'),
+                child: AspectRatio(
+                  aspectRatio: 800 / 600, // Unity game native aspect ratio
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                          color: Colors.grey.withOpacity(0.3), width: 1),
+                    ),
+                    child: InAppWebView(
+                      initialUrlRequest: URLRequest(
+                        url: WebUri(
+                            'asset://assets/bunnyhop/web_1.2.1/index.html'),
+                      ),
+                      initialSettings: InAppWebViewSettings(
+                        allowFileAccessFromFileURLs: true,
+                        allowUniversalAccessFromFileURLs: true,
+                        mediaPlaybackRequiresUserGesture: false,
+                        javaScriptEnabled: true,
+                      ),
+                      onWebViewCreated: (controller) {
+                        _webViewController = controller;
+                      },
+                      onLoadStop: (controller, url) async {
+                        debugPrint('Game loaded: $url');
+                      },
+                    ),
                   ),
-                  initialSettings: InAppWebViewSettings(
-                    allowFileAccessFromFileURLs: true,
-                    allowUniversalAccessFromFileURLs: true,
-                    mediaPlaybackRequiresUserGesture: false,
-                    javaScriptEnabled: true,
-                  ),
-                  onWebViewCreated: (controller) {
-                    _webViewController = controller;
-                  },
-                  onLoadStop: (controller, url) async {
-                    debugPrint('Game loaded: $url');
-                  },
                 ),
               ),
             ),
