@@ -830,8 +830,8 @@ class _BunnyScreenState extends State<BunnyScreen> {
           Positioned(
             bottom:
                 isMobileLandscape ? size.height * 0.12 : (isMobile ? 120 : 30),
-            left: -200,
-            right: isMobileLandscape ? 0 : (isMobile ? 0 : 0),
+            left: 0,
+            right: isMobileLandscape ? -200 : (isMobile ? 0 : 0),
             child: Center(
               child: Stack(
                 alignment: Alignment.center,
