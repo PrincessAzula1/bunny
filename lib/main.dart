@@ -338,14 +338,22 @@ class _StartVideoScreenState extends State<StartVideoScreen>
       // Stop music
       await _musicPlayer.stop().catchError((_) {});
 
-      // Play flash sound
-      await _musicPlayer.setReleaseMode(ReleaseMode.stop).catchError((_) {});
-      await _musicPlayer
-          .play(AssetSource('audio/flash.mp3'))
-          .catchError((_) {});
+      // Play flash sound for 1.5 seconds
+      final flashPlayer = AudioPlayer();
+      await flashPlayer.setReleaseMode(ReleaseMode.stop).catchError((_) {});
+      await flashPlayer.play(AssetSource('audio/flash.mp3')).catchError((_) {});
 
       if (!mounted) return;
       setState(() => _flash = true);
+
+      // Wait 1.5 seconds then stop flash and resume music
+      Timer(const Duration(milliseconds: 1500), () async {
+        await flashPlayer.stop();
+        await flashPlayer.dispose();
+        // Resume music loop
+        await _musicPlayer.setReleaseMode(ReleaseMode.loop);
+        await _musicPlayer.play(AssetSource('audio/music.mp3'));
+      });
 
       // Quick delay then navigate
       await Future.delayed(const Duration(milliseconds: 300));
@@ -823,7 +831,7 @@ class _BunnyScreenState extends State<BunnyScreen> {
             bottom:
                 isMobileLandscape ? size.height * 0.12 : (isMobile ? 120 : 30),
             left: 0,
-            right: isMobileLandscape ? 0 : (isMobile ? 0 : -260),
+            right: isMobileLandscape ? 0 : (isMobile ? 0 : -240),
             child: Center(
               child: Stack(
                 alignment: Alignment.center,
