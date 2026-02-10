@@ -209,6 +209,11 @@ class _StartVideoScreenState extends State<StartVideoScreen>
     debugPrint(
         'Controller value initialized: ${_videoController.value.isInitialized}');
 
+    if (!_videoController.value.isInitialized) {
+      debugPrint('Video not initialized yet, skipping play attempt');
+      return;
+    }
+
     try {
       // Reset video position and try to play - this helps reset the controller state
       debugPrint('Resetting video position...');
@@ -241,11 +246,23 @@ class _StartVideoScreenState extends State<StartVideoScreen>
             _showTapToStart = false;
           });
         } else {
-          debugPrint('Video still not playing - may need another tap');
+          debugPrint('Video still not playing - allowing navigation anyway');
+          // Hide overlay even if video doesn't play to allow progression
+          if (mounted) {
+            setState(() {
+              _showTapToStart = false;
+            });
+          }
         }
       }
     } catch (e) {
       debugPrint('Error playing video: $e');
+      // Hide overlay on error to allow progression
+      if (mounted) {
+        setState(() {
+          _showTapToStart = false;
+        });
+      }
     }
   }
 
@@ -314,27 +331,43 @@ class _StartVideoScreenState extends State<StartVideoScreen>
   Future<void> _goNext() async {
     if (!mounted) return;
 
-    // Non-blocking cleanup
-    _videoController.pause().catchError((_) {});
-    _musicPlayer.stop().catchError((_) {});
+    try {
+      // Pause video
+      await _videoController.pause().catchError((_) {});
 
-    // Play flash sound without blocking
-    _musicPlayer.setReleaseMode(ReleaseMode.stop).then((_) {
-      _musicPlayer.play(AssetSource('audio/flash.mp3')).catchError((_) {});
-    }).catchError((_) {});
+      // Stop music
+      await _musicPlayer.stop().catchError((_) {});
 
-    setState(() => _flash = true);
+      // Play flash sound
+      await _musicPlayer.setReleaseMode(ReleaseMode.stop).catchError((_) {});
+      await _musicPlayer
+          .play(AssetSource('audio/flash.mp3'))
+          .catchError((_) {});
 
-    // Quick delay then navigate
-    await Future.delayed(const Duration(milliseconds: 300));
+      if (!mounted) return;
+      setState(() => _flash = true);
 
-    if (!mounted) return;
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (_) => BunnyScreen(musicPlayer: _musicPlayer),
-      ),
-    );
+      // Quick delay then navigate
+      await Future.delayed(const Duration(milliseconds: 300));
+
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => BunnyScreen(musicPlayer: _musicPlayer),
+        ),
+      );
+    } catch (e) {
+      debugPrint('Error in _goNext: $e');
+      // Navigate anyway even if there's an error
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => BunnyScreen(musicPlayer: _musicPlayer),
+        ),
+      );
+    }
   }
 
   @override
@@ -501,24 +534,30 @@ class _StartVideoScreenState extends State<StartVideoScreen>
           ),
 
           // ▶️ START BUTTON
-          if (!_showTapToStart)
-            Positioned(
-              bottom: 80,
-              left: 0,
-              right: 0,
-              child: Center(
-                child: ElevatedButton(
-                  onPressed: _goNext,
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 48, vertical: 16),
-                    tapTargetSize: MaterialTapTargetSize.padded,
-                    minimumSize: const Size(120, 50),
-                  ),
-                  child: const Text("Start", style: TextStyle(fontSize: 18)),
+          Positioned(
+            bottom: 80,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: ElevatedButton(
+                onPressed: () async {
+                  // Ensure video is playing before navigation
+                  if (_showTapToStart) {
+                    await _tryPlayVideo();
+                    await Future.delayed(const Duration(milliseconds: 500));
+                  }
+                  await _goNext();
+                },
+                style: ElevatedButton.styleFrom(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 48, vertical: 16),
+                  tapTargetSize: MaterialTapTargetSize.padded,
+                  minimumSize: const Size(120, 50),
                 ),
+                child: const Text("Start", style: TextStyle(fontSize: 18)),
               ),
             ),
+          ),
         ],
       ),
     );
@@ -712,12 +751,12 @@ class _BunnyScreenState extends State<BunnyScreen> {
     }
 
     final bubbleWidth = isMobileLandscape
-        ? size.width * 0.6
-        : (isMobile ? size.width * 0.85 : 500.0);
+        ? size.width * 0.55
+        : (isMobile ? size.width * 0.68 : 500.0);
     final textWidth = isMobileLandscape
-        ? size.width * 0.45
-        : (isMobile ? size.width * 0.65 : 400.0);
-    final fontSize = isMobileLandscape ? 12.0 : (isMobile ? 16.0 : 20.0);
+        ? size.width * 0.40
+        : (isMobile ? size.width * 0.50 : 400.0);
+    final fontSize = isMobileLandscape ? 11.0 : (isMobile ? 14.0 : 20.0);
     final returnButtonSize =
         isMobileLandscape ? 30.0 : (isMobile ? 40.0 : 50.0);
 
@@ -782,7 +821,7 @@ class _BunnyScreenState extends State<BunnyScreen> {
           // 💬 Bubble Image + Typing Text
           Positioned(
             bottom:
-                isMobileLandscape ? size.height * 0.12 : (isMobile ? 80 : 30),
+                isMobileLandscape ? size.height * 0.12 : (isMobile ? 120 : 30),
             left: 0,
             right: isMobileLandscape ? 0 : (isMobile ? 0 : -260),
             child: Center(
