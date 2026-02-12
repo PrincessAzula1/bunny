@@ -811,90 +811,6 @@ class _BunnyScreenState extends State<BunnyScreen> {
                   padding: const EdgeInsets.all(8),
                   child: Image.asset(
                     "assets/images/return.png",
-                      : Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton(
-                                onPressed: _nextMessage,
-                                style: ElevatedButton.styleFrom(
-                                  padding: EdgeInsets.symmetric(
-                                    vertical: isMobileLandscape ? 8 : 12,
-                                  ),
-                                  tapTargetSize: MaterialTapTargetSize.padded,
-                                ),
-                                child: Text(
-                                  "Next",
-                                  style: TextStyle(
-                                    fontSize: isMobileLandscape ? 12 : 16,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            SizedBox(height: isMobileLandscape ? 5 : 10),
-                            SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton(
-                                onPressed: () async {
-                                  await Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => GameScreen(
-                                          musicPlayer: widget.musicPlayer),
-                                    ),
-                                  );
-                                  _resetMusicPlayer();
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.green,
-                                  padding: EdgeInsets.symmetric(
-                                    vertical: isMobileLandscape ? 8 : 12,
-                                  ),
-                                  tapTargetSize: MaterialTapTargetSize.padded,
-                                ),
-                                child: Text(
-                                  "Play BunnyHop",
-                                  style: TextStyle(
-                                    fontSize: isMobileLandscape ? 12 : 16,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            SizedBox(height: isMobileLandscape ? 5 : 10),
-                            SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton(
-                                onPressed: () async {
-                                  await Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          ExternalGameScreen(
-                                        musicPlayer: widget.musicPlayer,
-                                        gameUrl: _loveGameUrl,
-                                      ),
-                                    ),
-                                  );
-                                  _resetMusicPlayer();
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.blueGrey,
-                                  padding: EdgeInsets.symmetric(
-                                    vertical: isMobileLandscape ? 8 : 12,
-                                  ),
-                                  tapTargetSize: MaterialTapTargetSize.padded,
-                                ),
-                                child: Text(
-                                  "Play 100 Reasons",
-                                  style: TextStyle(
-                                    fontSize: isMobileLandscape ? 12 : 16,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        )
                     width: returnButtonSize - 16,
                     height: returnButtonSize - 16,
                     errorBuilder: (context, error, stackTrace) {
@@ -1045,8 +961,7 @@ class _BunnyScreenState extends State<BunnyScreen> {
                                   await Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) =>
-                                          ExternalGameScreen(
+                                      builder: (context) => ExternalGameScreen(
                                         musicPlayer: widget.musicPlayer,
                                         gameUrl: _loveGameUrl,
                                       ),
@@ -1127,8 +1042,7 @@ class _BunnyScreenState extends State<BunnyScreen> {
                                   await Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) =>
-                                          ExternalGameScreen(
+                                      builder: (context) => ExternalGameScreen(
                                         musicPlayer: widget.musicPlayer,
                                         gameUrl: _loveGameUrl,
                                       ),
