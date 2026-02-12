@@ -16,6 +16,227 @@ class GameScreen extends StatefulWidget {
   State<GameScreen> createState() => _GameScreenState();
 }
 
+class ExternalGameScreen extends StatefulWidget {
+  final AudioPlayer musicPlayer;
+  final String gameUrl;
+
+  const ExternalGameScreen({
+    Key? key,
+    required this.musicPlayer,
+    required this.gameUrl,
+  }) : super(key: key);
+
+  @override
+  State<ExternalGameScreen> createState() => _ExternalGameScreenState();
+}
+
+class _ExternalGameScreenState extends State<ExternalGameScreen> {
+  InAppWebViewController? _webViewController;
+  html.IFrameElement? _iframe;
+
+  @override
+  void initState() {
+    super.initState();
+    _lockLandscape();
+    _stopMusic();
+  }
+
+  void _lockLandscape() {
+    if (kIsWeb) {
+      try {
+        js.context.callMethod('eval', [
+          '''
+          if (screen.orientation && screen.orientation.lock) {
+            screen.orientation.lock("landscape").then(
+              () => console.log("Landscape locked"),
+              (err) => console.log("Lock failed:", err)
+            );
+          }
+          '''
+        ]);
+      } catch (e) {
+        debugPrint('Web orientation lock failed: $e');
+      }
+    } else {
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.landscapeRight,
+        DeviceOrientation.landscapeLeft,
+      ]);
+    }
+  }
+
+  void _unlockOrientation() {
+    if (kIsWeb) {
+      try {
+        js.context.callMethod('eval', ['screen.orientation.unlock()']);
+      } catch (e) {
+        debugPrint('Web orientation unlock failed: $e');
+      }
+    } else {
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.landscapeRight,
+        DeviceOrientation.landscapeLeft,
+      ]);
+    }
+  }
+
+  @override
+  void dispose() {
+    _unlockOrientation();
+    _resumeMusic();
+    super.dispose();
+  }
+
+  void _stopMusic() async {
+    try {
+      await widget.musicPlayer.pause();
+    } catch (e) {
+      debugPrint('Error stopping music: $e');
+    }
+  }
+
+  void _resumeMusic() async {
+    try {
+      await widget.musicPlayer.resume();
+    } catch (e) {
+      debugPrint('Error resuming music: $e');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (kIsWeb) {
+      const viewType = 'external-game-iframe';
+
+      try {
+        ui_web.platformViewRegistry.registerViewFactory(
+          viewType,
+          (int viewId) {
+            _iframe = html.IFrameElement()
+              ..src = widget.gameUrl
+              ..style.border = 'none'
+              ..style.width = '100%'
+              ..style.height = '100%'
+              ..style.overflow = 'hidden'
+              ..setAttribute('allow', 'autoplay; fullscreen')
+              ..setAttribute('allowfullscreen', 'true');
+            return _iframe!;
+          },
+        );
+      } catch (e) {
+        debugPrint('Error registering iframe: $e');
+      }
+
+      return Scaffold(
+        backgroundColor: Colors.black,
+        body: Stack(
+          children: [
+            Center(
+              child: AspectRatio(
+                aspectRatio: 4 / 3,
+                child: const HtmlElementView(viewType: viewType),
+              ),
+            ),
+            Positioned(
+              top: 10,
+              right: 10,
+              child: Material(
+                color: Colors.white.withOpacity(0.9),
+                borderRadius: BorderRadius.circular(17.5),
+                elevation: 4,
+                child: InkWell(
+                  onTap: () {
+                    Navigator.pop(context);
+                  },
+                  borderRadius: BorderRadius.circular(17.5),
+                  child: Container(
+                    width: 35,
+                    height: 35,
+                    padding: const EdgeInsets.all(7),
+                    child: Image.asset(
+                      "assets/images/return.png",
+                      width: 21,
+                      height: 21,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Icon(
+                          Icons.arrow_back,
+                          color: Colors.black87,
+                          size: 21,
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Stack(
+        children: [
+          Center(
+            child: AspectRatio(
+              aspectRatio: 4 / 3,
+              child: InAppWebView(
+                initialUrlRequest: URLRequest(
+                  url: WebUri(widget.gameUrl),
+                ),
+                initialSettings: InAppWebViewSettings(
+                  mediaPlaybackRequiresUserGesture: false,
+                  javaScriptEnabled: true,
+                ),
+                onWebViewCreated: (controller) {
+                  _webViewController = controller;
+                },
+                onLoadStop: (controller, url) async {
+                  debugPrint('External game loaded: $url');
+                },
+              ),
+            ),
+          ),
+          Positioned(
+            top: 10,
+            right: 10,
+            child: Material(
+              color: Colors.white.withOpacity(0.9),
+              borderRadius: BorderRadius.circular(17.5),
+              elevation: 4,
+              child: InkWell(
+                onTap: () {
+                  Navigator.pop(context);
+                },
+                borderRadius: BorderRadius.circular(17.5),
+                child: Container(
+                  width: 35,
+                  height: 35,
+                  padding: const EdgeInsets.all(7),
+                  child: Image.asset(
+                    "assets/images/return.png",
+                    width: 21,
+                    height: 21,
+                    errorBuilder: (context, error, stackTrace) {
+                      return const Icon(
+                        Icons.arrow_back,
+                        color: Colors.black87,
+                        size: 21,
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _GameScreenState extends State<GameScreen> {
   InAppWebViewController? _webViewController;
   html.IFrameElement? _iframe;
